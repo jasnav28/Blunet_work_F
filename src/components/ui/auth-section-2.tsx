@@ -307,41 +307,32 @@ function AuthForm() {
       </div>
 
       {/* Quick Test Accounts styled as rounded outline cards */}
-      <div className="grid grid-cols-2 gap-3 text-xs">
+      <div className="grid grid-cols-3 gap-2.5 text-xs">
         <button
           type="button"
           onClick={() => fillDemo("admin", "admin123")}
-          className="flex flex-col items-start p-3 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
+          className="flex flex-col items-start p-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
         >
-          <span className="font-bold text-slate-900">Admin</span>
-          <span className="text-[11px] text-slate-400 font-mono">admin</span>
+          <span className="font-bold text-slate-900 text-[11px]">Admin</span>
+          <span className="text-[10px] text-slate-400 font-mono">admin</span>
         </button>
 
         <button
           type="button"
           onClick={() => fillDemo("MA1011", "Password#1234")}
-          className="flex flex-col items-start p-3 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
+          className="flex flex-col items-start p-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
         >
-          <span className="font-bold text-slate-900">Mkt Head 1</span>
-          <span className="text-[11px] text-slate-400 font-mono">MA1011</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => fillDemo("AN1012", "Password#4321")}
-          className="flex flex-col items-start p-3 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
-        >
-          <span className="font-bold text-slate-900">Mkt Head 2</span>
-          <span className="text-[11px] text-slate-400 font-mono">AN1012</span>
+          <span className="font-bold text-slate-900 text-[11px]">Mkt Head</span>
+          <span className="text-[10px] text-slate-400 font-mono">MA1011</span>
         </button>
 
         <button
           type="button"
           onClick={() => fillDemo("EMP1022", "Punith#214")}
-          className="flex flex-col items-start p-3 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
+          className="flex flex-col items-start p-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
         >
-          <span className="font-bold text-slate-900">Employee</span>
-          <span className="text-[11px] text-slate-400 font-mono">EMP1022</span>
+          <span className="font-bold text-slate-900 text-[11px]">Employee</span>
+          <span className="text-[10px] text-slate-400 font-mono">EMP1022</span>
         </button>
       </div>
     </div>

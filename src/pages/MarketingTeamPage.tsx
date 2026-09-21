@@ -166,7 +166,9 @@ export const MarketingTeamPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {marketingMembers.map((member) => (
+              {marketingMembers
+                .filter((member) => member.employeeId !== 'AN1012' && !member.email?.toLowerCase().includes('anvi'))
+                .map((member) => (
                 <tr key={member.id} className="hover:bg-slate-50/50">
                   <td className="px-4 py-3 font-mono font-bold text-slate-900">{member.employeeId}</td>
                   <td className="px-4 py-3">

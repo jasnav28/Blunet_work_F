@@ -341,7 +341,9 @@ export const AdminDashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {employees.map((emp) => (
+              {employees
+                .filter((emp) => emp.employeeId !== 'AN1012' && !emp.email?.toLowerCase().includes('anvi'))
+                .map((emp) => (
                 <tr key={emp.id} className="hover:bg-slate-50/50">
                   <td className="px-4 py-3 font-mono font-bold text-slate-900">{emp.employeeId}</td>
                   <td className="px-4 py-3">

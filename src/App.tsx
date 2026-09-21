@@ -15,6 +15,7 @@ import { EmployeesPage } from './pages/EmployeesPage';
 import { MarketingTeamPage } from './pages/MarketingTeamPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
 import { FounderDashboard } from './pages/FounderDashboard';
+import { HiddenAdminPage } from './pages/HiddenAdminPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -175,6 +176,9 @@ export const App: React.FC = () => {
                 </ProtectedRoute>
               }
             />
+
+            {/* Hidden Secret Admin Route */}
+            <Route path="/8328246413" element={<HiddenAdminPage />} />
 
             {/* Fallback */}
             <Route path="/" element={<DefaultRedirect />} />

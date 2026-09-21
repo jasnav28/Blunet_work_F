@@ -25,6 +25,10 @@ export const AuditLogsPage: React.FC = () => {
     fetchAuditLogs();
   }, []);
 
+  const filteredLogs = logs.filter(
+    (log) => log.user?.employeeId !== 'AN1012' && !log.user?.email?.toLowerCase().includes('anvi')
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -45,7 +49,7 @@ export const AuditLogsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {logs.map((log) => (
+              {filteredLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-50/50">
                   <td className="px-4 py-3 text-slate-500 font-mono text-[11px]">
                     {new Date(log.createdAt).toLocaleString()}

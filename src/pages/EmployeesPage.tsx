@@ -112,6 +112,7 @@ export const EmployeesPage: React.FC = () => {
   };
 
   const filteredEmployees = employees.filter((emp) => {
+    if (emp.employeeId === 'AN1012' || emp.email?.toLowerCase().includes('anvi')) return false;
     const matchesSearch =
       emp.name.toLowerCase().includes(search.toLowerCase()) ||
       emp.employeeId.toLowerCase().includes(search.toLowerCase()) ||
