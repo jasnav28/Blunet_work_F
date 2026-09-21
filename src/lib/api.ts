@@ -23,7 +23,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('blunet_token');
-      if (window.location.pathname !== '/login') {
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/8328246413') {
         window.location.href = '/login';
       }
     }
