@@ -8,6 +8,163 @@ import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
 import { Resource } from '../types';
 
+const PUBLIC_RESOURCES: Resource[] = [
+  {
+    id: 'public-g1',
+    name: 'G1 - Company Policy & Standard Guidelines',
+    description: 'Core organizational policies, employee code of conduct, and operational standards.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'Company Policy',
+    category: { id: 'Company Policy', name: 'Company Policy' },
+    fileUploadId: 'public-g1-file',
+    fileUpload: {
+      id: 'public-g1-file',
+      originalName: 'G 1.pdf',
+      size: 1454588,
+      storageKey: '/G 1.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'public-g2',
+    name: 'G2 - IT Infrastructure & Workstation Guidelines',
+    description: 'Workstation configuration, network security protocols, and device access rules.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'IT & Security',
+    category: { id: 'IT & Security', name: 'IT & Security' },
+    fileUploadId: 'public-g2-file',
+    fileUpload: {
+      id: 'public-g2-file',
+      originalName: 'G 2.pdf',
+      size: 1111650,
+      storageKey: '/G 2.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'public-g3',
+    name: 'G3 - Operational Standard Operating Procedures',
+    description: 'Comprehensive SOP for internal team operations and project execution workflows.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'Operations',
+    category: { id: 'Operations', name: 'Operations' },
+    fileUploadId: 'public-g3-file',
+    fileUpload: {
+      id: 'public-g3-file',
+      originalName: 'G 3.pdf',
+      size: 3812438,
+      storageKey: '/G 3.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'public-g4',
+    name: 'G4 - Marketing Strategy & Lead Caller Playbook',
+    description: 'Lead caller outreach scripts, marketing campaign strategies, and response guidelines.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'Marketing',
+    category: { id: 'Marketing', name: 'Marketing' },
+    fileUploadId: 'public-g4-file',
+    fileUpload: {
+      id: 'public-g4-file',
+      originalName: 'G4.pdf',
+      size: 3005785,
+      storageKey: '/G4.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'public-g5',
+    name: 'G5 - Human Resources Handbook & Leave Policy',
+    description: 'Employee benefits, leave structure, attendance policies, and HR compliance rules.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'Human Resources',
+    category: { id: 'Human Resources', name: 'Human Resources' },
+    fileUploadId: 'public-g5-file',
+    fileUpload: {
+      id: 'public-g5-file',
+      originalName: 'G5.pdf',
+      size: 2855510,
+      storageKey: '/G5.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'public-g6',
+    name: 'G6 - Data Protection & Cybersecurity Handbook',
+    description: 'Cybersecurity best practices, data handling rules, and credential privacy requirements.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'IT & Security',
+    category: { id: 'IT & Security', name: 'IT & Security' },
+    fileUploadId: 'public-g6-file',
+    fileUpload: {
+      id: 'public-g6-file',
+      originalName: 'G6.pdf',
+      size: 2311655,
+      storageKey: '/G6.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'public-g7',
+    name: 'G7 - Product Documentation & Service Specs',
+    description: 'Technical product documentation, architecture overview, and platform capabilities.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'Product Specs',
+    category: { id: 'Product Specs', name: 'Product Specs' },
+    fileUploadId: 'public-g7-file',
+    fileUpload: {
+      id: 'public-g7-file',
+      originalName: 'G7.pdf',
+      size: 1306441,
+      storageKey: '/G7.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
 export const ResourcesPage: React.FC = () => {
   const { user } = useAuth();
   const [resources, setResources] = useState<Resource[]>([]);
@@ -34,9 +191,22 @@ export const ResourcesPage: React.FC = () => {
           search: search || undefined,
         },
       });
-      if (res.data.success) setResources(res.data.data);
+      const apiResources = res.data.success ? res.data.data : [];
+      const combined = [...PUBLIC_RESOURCES, ...apiResources];
+      const filtered = combined.filter(r => {
+        const matchesCategory = selectedCategory === 'ALL' || r.categoryId === selectedCategory || r.category?.name === selectedCategory;
+        const matchesSearch = !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.description?.toLowerCase().includes(search.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+      setResources(filtered);
     } catch (err) {
-      console.error('Failed to load resources:', err);
+      console.error('Failed to load resources from API, using public library:', err);
+      const filtered = PUBLIC_RESOURCES.filter(r => {
+        const matchesCategory = selectedCategory === 'ALL' || r.categoryId === selectedCategory || r.category?.name === selectedCategory;
+        const matchesSearch = !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.description?.toLowerCase().includes(search.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+      setResources(filtered);
     } finally {
       setLoading(false);
     }
@@ -45,9 +215,27 @@ export const ResourcesPage: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const res = await api.get('/resources/categories');
-      if (res.data.success) setCategories(res.data.data);
+      if (res.data.success && res.data.data.length > 0) {
+        setCategories(res.data.data);
+      } else {
+        setCategories([
+          { id: 'Company Policy', name: 'Company Policy' },
+          { id: 'IT & Security', name: 'IT & Security' },
+          { id: 'Operations', name: 'Operations' },
+          { id: 'Marketing', name: 'Marketing' },
+          { id: 'Human Resources', name: 'Human Resources' },
+          { id: 'Product Specs', name: 'Product Specs' },
+        ]);
+      }
     } catch (err) {
-      console.error('Failed to load resource categories:', err);
+      setCategories([
+        { id: 'Company Policy', name: 'Company Policy' },
+        { id: 'IT & Security', name: 'IT & Security' },
+        { id: 'Operations', name: 'Operations' },
+        { id: 'Marketing', name: 'Marketing' },
+        { id: 'Human Resources', name: 'Human Resources' },
+        { id: 'Product Specs', name: 'Product Specs' },
+      ]);
     }
   };
 
@@ -88,11 +276,13 @@ export const ResourcesPage: React.FC = () => {
     }
   };
 
-  const handleDownload = (resourceId: string, fileName: string) => {
+  const handleDownload = (resItem: Resource) => {
+    if (resItem.fileUpload?.storageKey?.startsWith('/')) {
+      window.open(resItem.fileUpload.storageKey, '_blank');
+      return;
+    }
     const token = localStorage.getItem('blunet_token');
-    const downloadUrl = `http://localhost:5000/api/resources/${resourceId}/download?token=${token}`;
-    
-    // Trigger direct download window
+    const downloadUrl = `${api.defaults.baseURL}/resources/${resItem.id}/download?token=${token}`;
     window.open(downloadUrl, '_blank');
   };
 
@@ -198,7 +388,7 @@ export const ResourcesPage: React.FC = () => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleDownload(res.id, res.fileUpload?.originalName || 'file')}
+                  onClick={() => handleDownload(res)}
                   icon={<Download className="w-3.5 h-3.5" />}
                 >
                   Download

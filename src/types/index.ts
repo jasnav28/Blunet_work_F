@@ -57,10 +57,14 @@ export interface Resource {
   description?: string;
   version: string;
   visibility: string;
+  categoryId?: string;
   category: { id: string; name: string };
-  fileUpload: { originalName: string; size: number; mimeType: string };
-  uploadedBy: { name: string };
+  fileUploadId?: string;
+  fileUpload: { id?: string; originalName: string; size: number; mimeType: string; storageKey?: string; uploadedById?: string; createdAt?: string };
+  uploadedById?: string;
+  uploadedBy?: { name: string };
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Lead {
