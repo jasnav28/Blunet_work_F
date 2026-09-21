@@ -53,14 +53,18 @@ export const LeadImporterPage: React.FC = () => {
     }
   };
 
+  const isAnvi = window.location.pathname.startsWith('/8328246413');
+  const targetOrg = isAnvi ? 'ANVI' : 'BLUNET';
+
   const handleConfirmImport = async () => {
     if (!preview || preview.validLeads.length === 0) return;
     setImporting(true);
 
     try {
       const res = await api.post('/leads/import/confirm', {
-        campaignName: campaignName || file?.name.replace(/\.[^/.]+$/, '') || 'Imported Campaign',
+        campaignName: campaignName || file?.name.replace(/\.[^/.]+$/, '') || `${targetOrg} Campaign`,
         leads: preview.validLeads,
+        organization: targetOrg,
       });
 
       if (res.data.success) {
@@ -80,8 +84,21 @@ export const LeadImporterPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-900">Import Marketing Leads</h1>
-        <p className="text-xs text-slate-500">Upload PDF, CSV, or XLSX lead files with automatic validation & duplicate detection</p>
+        <div className="flex items-center gap-2 mb-1">
+          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase ${
+            isAnvi ? 'bg-rose-100 text-[#800020] border border-rose-300' : 'bg-blue-100 text-blue-700'
+          }`}>
+            {isAnvi ? 'ANVI SECRET IMPORTER' : 'BLUNET IMPORTER'}
+          </span>
+        </div>
+        <h1 className="text-xl font-bold text-slate-900">
+          {isAnvi ? 'Anvi Lead PDF & File Importer' : 'BluNet Lead PDF & File Importer'}
+        </h1>
+        <p className="text-xs text-slate-500">
+          {isAnvi
+            ? 'Upload PDF, CSV, or XLSX lead files for Anvi. Leads imported here are exclusively visible to Anvi staff.'
+            : 'Upload PDF, CSV, or XLSX lead files for BluNet IT Services. Leads imported here are visible to both BluNet and Anvi staff.'}
+        </p>
       </div>
 
       {successMessage && (

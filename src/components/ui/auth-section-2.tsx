@@ -321,40 +321,83 @@ function AuthForm() {
       </form>
 
       {/* Divider */}
-      <div className="my-7 flex items-center gap-4 text-xs text-slate-400">
+      <div className="my-6 flex items-center gap-4 text-xs text-slate-400">
         <div className="h-px flex-1 bg-slate-200" />
-        <span className="font-medium text-slate-500">Quick Test Sign In</span>
+        <span className="font-semibold text-slate-600">Quick Test Sign In</span>
         <div className="h-px flex-1 bg-slate-200" />
       </div>
 
-      {/* Quick Test Accounts styled as rounded outline cards */}
-      <div className="grid grid-cols-3 gap-2.5 text-xs">
-        <button
-          type="button"
-          onClick={() => fillDemo("admin", "admin123")}
-          className="flex flex-col items-start p-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
-        >
-          <span className="font-bold text-slate-900 text-[11px]">Admin</span>
-          <span className="text-[10px] text-slate-400 font-mono">admin</span>
-        </button>
+      {/* BluNet Accounts Section */}
+      <div className="space-y-3">
+        <div className="text-[10px] font-bold tracking-wider text-blue-600 uppercase">
+          BluNet IT Services Accounts
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <button
+            type="button"
+            onClick={() => fillDemo("admin", "admin123")}
+            className="flex flex-col items-start p-2 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
+          >
+            <span className="font-bold text-slate-900 text-[11px]">Admin</span>
+            <span className="text-[10px] text-slate-400 font-mono">admin</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => fillDemo("MA1011", "Password#1234")}
-          className="flex flex-col items-start p-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
-        >
-          <span className="font-bold text-slate-900 text-[11px]">Mkt Head</span>
-          <span className="text-[10px] text-slate-400 font-mono">MA1011</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => fillDemo("MA1011", "Password#1234")}
+            className="flex flex-col items-start p-2 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
+          >
+            <span className="font-bold text-slate-900 text-[11px]">Mkt Head</span>
+            <span className="text-[10px] text-slate-400 font-mono">MA1011</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => fillDemo("EMP1022", "Punith#214")}
-          className="flex flex-col items-start p-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl text-slate-800 transition-all shadow-xs cursor-pointer"
-        >
-          <span className="font-bold text-slate-900 text-[11px]">Employee</span>
-          <span className="text-[10px] text-slate-400 font-mono">EMP1022</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => fillDemo("EMP1022", "Punith#214")}
+            className="flex flex-col items-start p-2 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
+          >
+            <span className="font-bold text-slate-900 text-[11px]">Employee</span>
+            <span className="text-[10px] text-slate-400 font-mono">EMP1022</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Anvi Accounts Section */}
+      <div className="space-y-3 mt-4">
+        <div className="text-[10px] font-bold tracking-wider text-[#800020] uppercase flex items-center justify-between">
+          <span>Anvi Workplace Accounts</span>
+          <span className="text-[9px] font-mono font-normal text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+            CONFIDENTIAL
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <button
+            type="button"
+            onClick={() => fillDemo("AN1012", "Password#4321")}
+            className="flex flex-col items-start p-2 bg-rose-50/30 border border-rose-200 hover:border-[#800020] hover:bg-rose-50 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
+          >
+            <span className="font-bold text-[#800020] text-[11px]">Anvi Mkt Head</span>
+            <span className="text-[10px] text-rose-700 font-mono">AN1012</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => fillDemo("jashwanth8328246413", "9398764390")}
+            className="flex flex-col items-start p-2 bg-amber-50/30 border border-amber-200 hover:border-amber-500 hover:bg-amber-50 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
+          >
+            <span className="font-bold text-amber-900 text-[11px]">Secret Admin</span>
+            <span className="text-[9px] text-amber-700 font-mono truncate max-w-[85px]">jashwanth...</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => fillDemo("ANVI-EMP-001", "Password#1234")}
+            className="flex flex-col items-start p-2 bg-rose-50/30 border border-rose-200 hover:border-[#800020] hover:bg-rose-50 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
+          >
+            <span className="font-bold text-[#800020] text-[11px]">Anvi Staff</span>
+            <span className="text-[10px] text-rose-700 font-mono">ANVI-EMP-001</span>
+          </button>
+        </div>
       </div>
     </div>
   );

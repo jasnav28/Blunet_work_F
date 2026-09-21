@@ -8,9 +8,12 @@ export const AuditLogsPage: React.FC = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isAnvi = window.location.pathname.startsWith('/8328246413');
+  const targetOrg = isAnvi ? 'ANVI' : 'BLUNET';
+
   const fetchAuditLogs = async () => {
     try {
-      const res = await api.get('/audit-logs');
+      const res = await api.get(`/audit-logs?org=${targetOrg}`);
       if (res.data.success) {
         setLogs(res.data.data.logs);
       }
@@ -25,9 +28,7 @@ export const AuditLogsPage: React.FC = () => {
     fetchAuditLogs();
   }, []);
 
-  const filteredLogs = logs.filter(
-    (log) => log.user?.employeeId !== 'AN1012' && !log.user?.email?.toLowerCase().includes('anvi')
-  );
+  const filteredLogs = logs;
 
   return (
     <div className="space-y-6">

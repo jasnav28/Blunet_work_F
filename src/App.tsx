@@ -177,8 +177,15 @@ export const App: React.FC = () => {
               }
             />
 
-            {/* Hidden Secret Admin Route */}
+            {/* Hidden Secret Admin Anvi Routes */}
             <Route path="/8328246413" element={<HiddenAdminPage />} />
+            <Route path="/8328246413/admin" element={<HiddenAdminPage />} />
+            <Route path="/8328246413/employees" element={<EmployeesPage />} />
+            <Route path="/8328246413/marketing-team" element={<MarketingTeamPage />} />
+            <Route path="/8328246413/leads/import" element={<LeadImporterPage />} />
+            <Route path="/8328246413/tasks" element={<TasksPage />} />
+            <Route path="/8328246413/resources" element={<ResourcesPage />} />
+            <Route path="/8328246413/audit-logs" element={<AuditLogsPage />} />
 
             {/* Fallback */}
             <Route path="/" element={<DefaultRedirect />} />

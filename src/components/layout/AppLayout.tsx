@@ -28,7 +28,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   // Activate heartbeat hook
   useHeartbeat();
 
-  const isAnvi = user?.employeeId?.toUpperCase() === 'AN1012';
+  const isAnviRoute = location.pathname.startsWith('/8328246413');
+  const isAnvi = isAnviRoute || user?.employeeId?.toUpperCase() === 'AN1012';
 
   React.useEffect(() => {
     if (isAnvi) {
@@ -44,6 +45,18 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   if (!user) return <>{children}</>;
 
   const getNavItems = () => {
+    if (isAnviRoute) {
+      return [
+        { label: 'Overview', path: '/8328246413/admin', icon: LayoutDashboard },
+        { label: 'Employees', path: '/8328246413/employees', icon: Users },
+        { label: 'Marketing Team', path: '/8328246413/marketing-team', icon: UserCog },
+        { label: 'Lead Importer', path: '/8328246413/leads/import', icon: PhoneCall },
+        { label: 'Tasks', path: '/8328246413/tasks', icon: CheckSquare },
+        { label: 'Resources', path: '/8328246413/resources', icon: FolderLock },
+        { label: 'Audit Logs', path: '/8328246413/audit-logs', icon: ShieldCheck },
+      ];
+    }
+
     switch (user.role) {
       case 'MARKETING_HEAD':
         return [

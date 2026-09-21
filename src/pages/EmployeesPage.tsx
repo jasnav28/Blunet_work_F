@@ -38,10 +38,13 @@ export const EmployeesPage: React.FC = () => {
   const [selectedForDelete, setSelectedForDelete] = useState<ExtendedUserProfile | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const isAnvi = window.location.pathname.startsWith('/8328246413');
+  const targetOrg = isAnvi ? 'ANVI' : 'BLUNET';
+
   const fetchEmployeesData = async () => {
     try {
       const [empRes, deptRes] = await Promise.all([
-        api.get('/employees'),
+        api.get(`/employees?org=${targetOrg}`),
         api.get('/employees/departments'),
       ]);
       if (empRes.data.success) setEmployees(empRes.data.data);
@@ -70,6 +73,7 @@ export const EmployeesPage: React.FC = () => {
         designation,
         departmentId: departmentId || null,
         temporaryPassword,
+        organization: targetOrg,
       });
 
       setIsCreateOpen(false);
@@ -112,7 +116,6 @@ export const EmployeesPage: React.FC = () => {
   };
 
   const filteredEmployees = employees.filter((emp) => {
-    if (emp.employeeId === 'AN1012' || emp.email?.toLowerCase().includes('anvi')) return false;
     const matchesSearch =
       emp.name.toLowerCase().includes(search.toLowerCase()) ||
       emp.employeeId.toLowerCase().includes(search.toLowerCase()) ||

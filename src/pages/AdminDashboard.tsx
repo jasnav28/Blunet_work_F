@@ -83,8 +83,8 @@ export const AdminDashboard: React.FC = () => {
     setLoading(true);
     try {
       const [overviewRes, empRes, deptRes] = await Promise.all([
-        api.get('/reports/admin-overview'),
-        api.get('/employees'),
+        api.get('/reports/admin-overview?org=BLUNET'),
+        api.get('/employees?org=BLUNET'),
         api.get('/employees/departments'),
       ]);
 
