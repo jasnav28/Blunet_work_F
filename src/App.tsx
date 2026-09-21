@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppLayout } from './components/layout/AppLayout';
@@ -31,6 +31,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
   allowedRoles,
 }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -40,11 +41,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
     );
   }
 
-  if (!user) {
+  const hiddenAdminAuth = typeof window !== 'undefined' && sessionStorage.getItem('blunet_hidden_admin_auth') === 'true';
+  const isAnviRoute = location.pathname.startsWith('/8328246413');
+
+  if (!user && !hiddenAdminAuth && !isAnviRoute) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (user && allowedRoles && !allowedRoles.includes(user.role) && !isAnviRoute) {
     if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
     if (user.role === 'MARKETING_HEAD') return <Navigate to="/marketing" replace />;
     if (user.role === 'FOUNDER') return <Navigate to="/founder" replace />;
@@ -56,6 +60,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
 
 const DefaultRedirect: React.FC = () => {
   const { user } = useAuth();
+  const hiddenAdminAuth = typeof window !== 'undefined' && sessionStorage.getItem('blunet_hidden_admin_auth') === 'true';
+  if (hiddenAdminAuth) return <Navigate to="/8328246413/admin" replace />;
   if (!user) return <Navigate to="/login" replace />;
   if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
   if (user.role === 'MARKETING_HEAD') return <Navigate to="/marketing" replace />;
@@ -180,12 +186,12 @@ export const App: React.FC = () => {
             {/* Hidden Secret Admin Anvi Routes */}
             <Route path="/8328246413" element={<HiddenAdminPage />} />
             <Route path="/8328246413/admin" element={<HiddenAdminPage />} />
-            <Route path="/8328246413/employees" element={<AppLayout><EmployeesPage /></AppLayout>} />
-            <Route path="/8328246413/marketing-team" element={<AppLayout><MarketingTeamPage /></AppLayout>} />
-            <Route path="/8328246413/leads/import" element={<AppLayout><LeadImporterPage /></AppLayout>} />
-            <Route path="/8328246413/tasks" element={<AppLayout><TasksPage /></AppLayout>} />
-            <Route path="/8328246413/resources" element={<AppLayout><ResourcesPage /></AppLayout>} />
-            <Route path="/8328246413/audit-logs" element={<AppLayout><AuditLogsPage /></AppLayout>} />
+            <Route path="/8328246413/employees" element={<ProtectedRoute><EmployeesPage /></ProtectedRoute>} />
+            <Route path="/8328246413/marketing-team" element={<ProtectedRoute><MarketingTeamPage /></ProtectedRoute>} />
+            <Route path="/8328246413/leads/import" element={<ProtectedRoute><LeadImporterPage /></ProtectedRoute>} />
+            <Route path="/8328246413/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+            <Route path="/8328246413/resources" element={<ProtectedRoute><ResourcesPage /></ProtectedRoute>} />
+            <Route path="/8328246413/audit-logs" element={<ProtectedRoute><AuditLogsPage /></ProtectedRoute>} />
 
             {/* Fallback */}
             <Route path="/" element={<DefaultRedirect />} />

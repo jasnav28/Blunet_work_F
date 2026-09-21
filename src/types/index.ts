@@ -25,6 +25,7 @@ export interface UserProfile {
   phone?: string;
   role: Role;
   designation: string;
+  organization?: string;
   department?: { id: string; name: string; code: string } | null;
   joiningDate: string;
   isActive: boolean;

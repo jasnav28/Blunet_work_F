@@ -370,11 +370,11 @@ function AuthForm() {
             CONFIDENTIAL
           </span>
         </div>
-        <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="grid grid-cols-2 gap-2 text-xs">
           <button
             type="button"
             onClick={() => fillDemo("AN1012", "Password#4321")}
-            className="flex flex-col items-start p-2 bg-rose-50/30 border border-rose-200 hover:border-[#800020] hover:bg-rose-50 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
+            className="flex flex-col items-start p-2.5 bg-rose-50/40 border border-rose-200 hover:border-[#800020] hover:bg-rose-50 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
           >
             <span className="font-bold text-[#800020] text-[11px]">Anvi Mkt Head</span>
             <span className="text-[10px] text-rose-700 font-mono">AN1012</span>
@@ -383,19 +383,10 @@ function AuthForm() {
           <button
             type="button"
             onClick={() => fillDemo("jashwanth8328246413", "9398764390")}
-            className="flex flex-col items-start p-2 bg-amber-50/30 border border-amber-200 hover:border-amber-500 hover:bg-amber-50 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
+            className="flex flex-col items-start p-2.5 bg-amber-50/40 border border-amber-200 hover:border-amber-500 hover:bg-amber-50 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
           >
             <span className="font-bold text-amber-900 text-[11px]">Secret Admin</span>
-            <span className="text-[9px] text-amber-700 font-mono truncate max-w-[85px]">jashwanth...</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fillDemo("ANVI-EMP-001", "Password#1234")}
-            className="flex flex-col items-start p-2 bg-rose-50/30 border border-rose-200 hover:border-[#800020] hover:bg-rose-50 rounded-xl text-slate-800 transition-all shadow-xs cursor-pointer"
-          >
-            <span className="font-bold text-[#800020] text-[11px]">Anvi Staff</span>
-            <span className="text-[10px] text-rose-700 font-mono">ANVI-EMP-001</span>
+            <span className="text-[9px] text-amber-700 font-mono truncate max-w-[120px]">jashwanth8328246413</span>
           </button>
         </div>
       </div>
