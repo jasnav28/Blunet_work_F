@@ -114,15 +114,78 @@ export default function AuthSectionTwo() {
             </div>
           </div>
 
-          {/* Bottom Caption Overlay */}
-          <div className="relative z-10 mt-auto pt-10">
-            <div className="p-6 bg-slate-950/75 backdrop-blur-md rounded-2xl border border-white/10 max-w-[440px] shadow-xl">
-              <h2 className="text-xl font-bold text-white tracking-tight">
-                Enterprise Operations & Management
-              </h2>
-              <p className="mt-2 text-xs text-slate-300 leading-relaxed font-medium">
-                A production-ready workplace platform for BluNet IT Services. Interactive ambient WebGPU wave field with real-time RBAC policy enforcement.
+          {/* Bottom Brands / Platform Grid Overlay matching reference UI */}
+          <div className="relative z-10 mt-auto pt-6">
+            <div className="mb-3 text-center">
+              <p className="text-xs font-medium tracking-wide text-slate-400">
+                Trusted by teams and companies around the world
               </p>
+            </div>
+            
+            <div className="overflow-hidden rounded-xl border border-slate-800/90 bg-[#0b0d13]/90 shadow-2xl backdrop-blur-md max-w-[540px]">
+              {/* Row 1: Workspace, Employee Login, Marketing Head Login */}
+              <div className="grid grid-cols-3 divide-x divide-slate-800/80 border-b border-slate-800/80">
+                <div className="flex h-20 items-center justify-center bg-[#12141d]/90 px-3 transition-colors hover:bg-[#181b27]">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400">
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/></svg>
+                    </span>
+                    <span className="text-sm font-extrabold tracking-tight text-white">
+                      Workspace
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex h-20 items-center justify-center bg-[#12141d]/90 px-3 transition-colors hover:bg-[#181b27]">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </span>
+                    <span className="text-xs font-bold text-emerald-400 tracking-tight">
+                      Employee Login
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex h-20 items-center justify-center bg-[#12141d]/90 px-3 transition-colors hover:bg-[#181b27]">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 012-2h2a2 2 0 012 2v6a2 2 0 01-2 2h-2a2 2 0 01-2-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </span>
+                    <span className="text-xs font-bold text-purple-300 tracking-tight leading-tight text-left">
+                      Marketing Head
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 2: AgroFlow, RestoPilot, BluNet Workplace */}
+              <div className="grid grid-cols-3 divide-x divide-slate-800/80">
+                <div className="flex h-20 items-center justify-center bg-[#12141d]/90 px-3 transition-colors hover:bg-[#181b27]">
+                  <div className="flex items-center gap-1">
+                    <span className="text-base font-black tracking-tight text-amber-500">Agro</span>
+                    <span className="text-base font-black tracking-tight text-emerald-400">Flow</span>
+                  </div>
+                </div>
+
+                <div className="flex h-20 items-center justify-center bg-[#12141d]/90 px-3 transition-colors hover:bg-[#181b27]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base font-extrabold tracking-tight text-cyan-400">Resto</span>
+                    <span className="rounded bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-black tracking-wider text-cyan-300 uppercase">
+                      PILOT
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex h-20 items-center justify-center bg-[#12141d]/90 px-3 transition-colors hover:bg-[#181b27]">
+                  <div className="flex items-center gap-2">
+                    <img src="/l.webp" alt="BluNet" className="h-5 w-auto object-contain" />
+                    <span className="text-sm font-extrabold tracking-tight text-white">
+                      BluNet
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
