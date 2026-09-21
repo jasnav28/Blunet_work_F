@@ -1,0 +1,224 @@
+import React, { useState } from 'react';
+import { Upload, FileCheck, AlertCircle, CheckCircle2, FileText, ArrowRight, Loader2 } from 'lucide-react';
+import { api } from '../lib/api';
+import { Card } from '../components/common/Card';
+import { Badge } from '../components/common/Badge';
+import { Button } from '../components/common/Button';
+
+interface PreviewData {
+  detected: number;
+  validCount: number;
+  duplicateCount: number;
+  invalidCount: number;
+  validLeads: any[];
+  duplicates: any[];
+  invalidLeads: any[];
+}
+
+export const LeadImporterPage: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [campaignName, setCampaignName] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
+  const [preview, setPreview] = useState<PreviewData | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+      setPreview(null);
+      setSuccessMessage('');
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!file) return;
+    setAnalyzing(true);
+    setSuccessMessage('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await api.post('/leads/import/preview', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.data.success) {
+        setPreview(res.data.data);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Failed to parse lead file.');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    if (!preview || preview.validLeads.length === 0) return;
+    setImporting(true);
+
+    try {
+      const res = await api.post('/leads/import/confirm', {
+        campaignName: campaignName || file?.name.replace(/\.[^/.]+$/, '') || 'Imported Campaign',
+        leads: preview.validLeads,
+      });
+
+      if (res.data.success) {
+        setSuccessMessage(res.data.message);
+        setPreview(null);
+        setFile(null);
+        setCampaignName('');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Import failed.');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-xl font-bold text-slate-900">Import Marketing Leads</h1>
+        <p className="text-xs text-slate-500">Upload PDF, CSV, or XLSX lead files with automatic validation & duplicate detection</p>
+      </div>
+
+      {successMessage && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span className="font-medium text-sm">{successMessage}</span>
+        </div>
+      )}
+
+      {/* Upload Box */}
+      <Card title="Upload Lead File (PDF / CSV / XLSX)">
+        <div className="space-y-4">
+          <div className="border-2 border-dashed border-slate-200 hover:border-blue-500 transition-colors rounded-xl p-8 text-center bg-slate-50/50">
+            <Upload className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-slate-800">
+              Drag & Drop PDF / CSV / Excel file here, or browse
+            </p>
+            <p className="text-xs text-slate-400 mt-1">Supports .pdf, .csv, .xlsx, .xls (Up to 25MB)</p>
+
+            <input
+              type="file"
+              accept=".pdf,.csv,.xlsx,.xls"
+              onChange={handleFileSelect}
+              className="hidden"
+              id="lead-file-input"
+            />
+            <label htmlFor="lead-file-input" className="inline-block mt-4">
+              <Button type="button" variant="outline" size="sm">
+                Choose File
+              </Button>
+            </label>
+          </div>
+
+          {file && (
+            <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex items-center gap-3">
+                <FileText className="w-6 h-6 text-blue-600" />
+                <div>
+                  <div className="text-sm font-bold text-slate-900">{file.name}</div>
+                  <div className="text-xs text-slate-500">{(file.size / 1024).toFixed(1)} KB</div>
+                </div>
+              </div>
+
+              <Button onClick={handleAnalyze} loading={analyzing}>
+                Analyze File
+              </Button>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Preview Section */}
+      {analyzing && (
+        <Card className="text-center py-12">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-3" />
+          <p className="text-sm font-semibold text-slate-800">Analyzing file & extracting leads...</p>
+          <p className="text-xs text-slate-400 mt-1">Validating field formats and checking database duplicates</p>
+        </Card>
+      )}
+
+      {preview && (
+        <div className="space-y-6">
+          {/* Summary Breakdown Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="bg-slate-50 border-slate-200">
+              <div className="text-xs text-slate-500 font-medium">Leads Detected</div>
+              <div className="text-2xl font-bold text-slate-900 mt-1">{preview.detected}</div>
+            </Card>
+
+            <Card className="bg-emerald-50 border-emerald-200">
+              <div className="text-xs text-emerald-700 font-medium">Valid Leads</div>
+              <div className="text-2xl font-bold text-emerald-800 mt-1">{preview.validCount}</div>
+            </Card>
+
+            <Card className="bg-amber-50 border-amber-200">
+              <div className="text-xs text-amber-700 font-medium">Duplicates Removed</div>
+              <div className="text-2xl font-bold text-amber-800 mt-1">{preview.duplicateCount}</div>
+            </Card>
+
+            <Card className="bg-rose-50 border-rose-200">
+              <div className="text-xs text-rose-700 font-medium">Invalid Leads</div>
+              <div className="text-2xl font-bold text-rose-800 mt-1">{preview.invalidCount}</div>
+            </Card>
+          </div>
+
+          {/* Import Action Box */}
+          <Card title="Import Preview Confirmation">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Campaign Title</label>
+                <input
+                  type="text"
+                  value={campaignName}
+                  onChange={(e) => setCampaignName(e.target.value)}
+                  placeholder="e.g. Q4 Enterprise Leads Bengaluru"
+                  className="w-full max-w-md px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Sample extracted leads table */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 font-semibold text-xs text-slate-700 border-b border-slate-200 flex justify-between">
+                  <span>Sample Valid Leads Preview ({preview.validLeads.length} Total)</span>
+                  <span>Lead #1 will be AVAILABLE, Lead #2+ LOCKED</span>
+                </div>
+                <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
+                  {preview.validLeads.slice(0, 10).map((l: any, i: number) => (
+                    <div key={i} className="px-4 py-2.5 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-bold text-slate-900">{l.businessName}</span>
+                        <span className="text-slate-400 ml-2">{l.phone}</span>
+                      </div>
+                      <Badge variant={i === 0 ? 'success' : 'neutral'}>
+                        {i === 0 ? 'AVAILABLE (#1)' : `LOCKED (#${i + 1})`}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <Button variant="secondary" onClick={() => setPreview(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmImport}
+                  loading={importing}
+                  disabled={preview.validLeads.length === 0}
+                  icon={<ArrowRight className="w-4 h-4" />}
+                >
+                  Import {preview.validCount} Valid Leads
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
