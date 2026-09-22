@@ -17,6 +17,7 @@ import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { Lead, MarketingAnalytics } from '../types';
+import { TargetReminderModal } from '../components/marketing/TargetReminderModal';
 
 export const MarketingDashboard: React.FC = () => {
   const [activeLead, setActiveLead] = useState<any | null>(null);
@@ -436,6 +437,9 @@ export const MarketingDashboard: React.FC = () => {
         </div>
 
       </div>
+
+      {/* TARGET REMINDER SYSTEM */}
+      <TargetReminderModal />
     </div>
   );
 };
