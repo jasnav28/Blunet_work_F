@@ -215,6 +215,7 @@ function AuthForm() {
     try {
       const res = await api.post("/auth/login", { employeeId, password });
       if (res.data.success) {
+        login(res.data.data.token, res.data.data.user);
         const loggedUser = res.data.data.user;
         const userSlug = getUserSlug(loggedUser);
         if (loggedUser.role === "ADMIN") navigate(`/${userSlug}/admin`);
