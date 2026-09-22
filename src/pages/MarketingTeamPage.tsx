@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Users, UserPlus, Trash2, PhoneCall, Upload, FileText, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
 import { api } from '../lib/api';
 import { Card } from '../components/common/Card';
@@ -31,6 +31,32 @@ export const MarketingTeamPage: React.FC = () => {
   const [preview, setPreview] = useState<any | null>(null);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0]);
+      setPreview(null);
+      setImportMsg('');
+    }
+  };
 
   const fetchMarketingTeam = async () => {
     try {
@@ -211,25 +237,47 @@ export const MarketingTeamPage: React.FC = () => {
         )}
 
         <div className="space-y-4">
-          <div className="border-2 border-dashed border-slate-200 hover:border-blue-500 transition-colors rounded-xl p-8 text-center bg-slate-50/50">
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed transition-colors rounded-xl p-8 text-center cursor-pointer ${
+              isDragging ? 'border-blue-600 bg-blue-50' : 'border-slate-200 hover:border-blue-500 bg-slate-50/50'
+            }`}
+          >
             <Upload className="w-10 h-10 text-blue-600 mx-auto mb-3" />
             <p className="text-sm font-semibold text-slate-800">
-              Drag & Drop Excel / CSV / PDF lead file here, or browse
+              Drag & Drop Excel / CSV / PDF lead file here, or click to browse
             </p>
             <p className="text-xs text-slate-400 mt-1">Supports Excel (.xlsx, .xls), CSV, or PDF with business names & contact numbers</p>
 
             <input
+              ref={fileInputRef}
               type="file"
-              accept=".xlsx,.xls,.csv,.pdf"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              accept=".xlsx,.xls,.csv,.pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,application/pdf"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setFile(e.target.files[0]);
+                  setPreview(null);
+                  setImportMsg('');
+                }
+              }}
               className="hidden"
-              id="excel-lead-input"
             />
-            <label htmlFor="excel-lead-input" className="inline-block mt-4">
-              <Button type="button" variant="outline" size="sm">
+            <div className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+              >
                 Choose Excel / File
               </Button>
-            </label>
+            </div>
           </div>
 
           {file && (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload, FileCheck, AlertCircle, CheckCircle2, FileText, ArrowRight, Loader2 } from 'lucide-react';
 import { api } from '../lib/api';
 import { Card } from '../components/common/Card';
@@ -22,10 +22,36 @@ export const LeadImporterPage: React.FC = () => {
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [importing, setImporting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+      setPreview(null);
+      setSuccessMessage('');
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0]);
       setPreview(null);
       setSuccessMessage('');
     }
@@ -111,25 +137,41 @@ export const LeadImporterPage: React.FC = () => {
       {/* Upload Box */}
       <Card title="Upload Lead File (Excel / CSV / PDF)">
         <div className="space-y-4">
-          <div className="border-2 border-dashed border-slate-200 hover:border-blue-500 transition-colors rounded-xl p-8 text-center bg-slate-50/50">
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed transition-colors rounded-xl p-8 text-center cursor-pointer ${
+              isDragging ? 'border-blue-600 bg-blue-50' : 'border-slate-200 hover:border-blue-500 bg-slate-50/50'
+            }`}
+          >
             <Upload className="w-10 h-10 text-blue-600 mx-auto mb-3" />
             <p className="text-sm font-semibold text-slate-800">
-              Drag & Drop Excel / CSV / PDF lead file here, or browse
+              Drag & Drop Excel / CSV / PDF lead file here, or click to browse
             </p>
             <p className="text-xs text-slate-400 mt-1">Supports .xlsx, .xls, .csv, .pdf (Up to 25MB)</p>
 
             <input
+              ref={fileInputRef}
               type="file"
-              accept=".xlsx,.xls,.csv,.pdf"
+              accept=".xlsx,.xls,.csv,.pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,application/pdf"
               onChange={handleFileSelect}
               className="hidden"
-              id="lead-file-input"
             />
-            <label htmlFor="lead-file-input" className="inline-block mt-4">
-              <Button type="button" variant="outline" size="sm">
+            <div className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+              >
                 Choose Excel / File
               </Button>
-            </label>
+            </div>
           </div>
 
           {file && (
