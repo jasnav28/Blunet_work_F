@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppLayout } from './components/layout/AppLayout';
+import { getUserSlug } from './lib/userSlug';
 
 import { LoginPage } from './pages/LoginPage';
 import { EmployeeDashboard } from './pages/EmployeeDashboard';
@@ -49,10 +50,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
   }
 
   if (user && allowedRoles && !allowedRoles.includes(user.role) && !isAnviRoute) {
-    if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
-    if (user.role === 'MARKETING_HEAD') return <Navigate to="/marketing" replace />;
-    if (user.role === 'FOUNDER') return <Navigate to="/founder" replace />;
-    return <Navigate to="/dashboard" replace />;
+    const userSlug = getUserSlug(user);
+    if (user.role === 'ADMIN') return <Navigate to={`/${userSlug}/admin`} replace />;
+    if (user.role === 'MARKETING_HEAD') return <Navigate to={`/${userSlug}/marketing`} replace />;
+    if (user.role === 'FOUNDER') return <Navigate to={`/${userSlug}/founder`} replace />;
+    return <Navigate to={`/${userSlug}/dashboard`} replace />;
   }
 
   return <AppLayout>{children}</AppLayout>;
@@ -63,10 +65,12 @@ const DefaultRedirect: React.FC = () => {
   const hiddenAdminAuth = typeof window !== 'undefined' && sessionStorage.getItem('blunet_hidden_admin_auth') === 'true';
   if (hiddenAdminAuth) return <Navigate to="/8328246413/admin" replace />;
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
-  if (user.role === 'MARKETING_HEAD') return <Navigate to="/marketing" replace />;
-  if (user.role === 'FOUNDER') return <Navigate to="/founder" replace />;
-  return <Navigate to="/dashboard" replace />;
+
+  const userSlug = getUserSlug(user);
+  if (user.role === 'ADMIN') return <Navigate to={`/${userSlug}/admin`} replace />;
+  if (user.role === 'MARKETING_HEAD') return <Navigate to={`/${userSlug}/marketing`} replace />;
+  if (user.role === 'FOUNDER') return <Navigate to={`/${userSlug}/founder`} replace />;
+  return <Navigate to={`/${userSlug}/dashboard`} replace />;
 };
 
 export const App: React.FC = () => {
@@ -79,109 +83,45 @@ export const App: React.FC = () => {
             <Route path="/login" element={<LoginPage />} />
 
             {/* Employee Dashboard */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}>
-                  <EmployeeDashboard />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><EmployeeDashboard /></ProtectedRoute>} />
+            <Route path="/:userSlug/dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><EmployeeDashboard /></ProtectedRoute>} />
 
             {/* Tasks */}
-            <Route
-              path="/tasks"
-              element={
-                <ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}>
-                  <TasksPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/tasks" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><TasksPage /></ProtectedRoute>} />
+            <Route path="/:userSlug/tasks" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><TasksPage /></ProtectedRoute>} />
 
             {/* Resources */}
-            <Route
-              path="/resources"
-              element={
-                <ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}>
-                  <ResourcesPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/resources" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><ResourcesPage /></ProtectedRoute>} />
+            <Route path="/:userSlug/resources" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><ResourcesPage /></ProtectedRoute>} />
 
             {/* Marketing Head Overview & Caller */}
-            <Route
-              path="/marketing"
-              element={
-                <ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN', 'FOUNDER']}>
-                  <MarketingDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/leads"
-              element={
-                <ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN']}>
-                  <MarketingDashboard />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/marketing" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN', 'FOUNDER']}><MarketingDashboard /></ProtectedRoute>} />
+            <Route path="/:userSlug/marketing" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN', 'FOUNDER']}><MarketingDashboard /></ProtectedRoute>} />
+            
+            <Route path="/leads" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN']}><MarketingDashboard /></ProtectedRoute>} />
+            <Route path="/:userSlug/leads" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN']}><MarketingDashboard /></ProtectedRoute>} />
 
             {/* Admin Dedicated Routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['ADMIN']}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/:userSlug/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
 
             {/* Dedicated Employees Management Page */}
-            <Route
-              path="/employees"
-              element={
-                <ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD', 'FOUNDER']}>
-                  <EmployeesPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/employees" element={<ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><EmployeesPage /></ProtectedRoute>} />
+            <Route path="/:userSlug/employees" element={<ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><EmployeesPage /></ProtectedRoute>} />
 
             {/* Dedicated Marketing Team & Lead Importer Page */}
-            <Route
-              path="/marketing-team"
-              element={
-                <ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD']}>
-                  <MarketingTeamPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/marketing-team" element={<ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD']}><MarketingTeamPage /></ProtectedRoute>} />
+            <Route path="/:userSlug/marketing-team" element={<ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD']}><MarketingTeamPage /></ProtectedRoute>} />
 
-            <Route
-              path="/leads/import"
-              element={
-                <ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD']}>
-                  <LeadImporterPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/audit-logs"
-              element={
-                <ProtectedRoute allowedRoles={['ADMIN']}>
-                  <AuditLogsPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/leads/import" element={<ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD']}><LeadImporterPage /></ProtectedRoute>} />
+            <Route path="/:userSlug/leads/import" element={<ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD']}><LeadImporterPage /></ProtectedRoute>} />
+
+            <Route path="/audit-logs" element={<ProtectedRoute allowedRoles={['ADMIN']}><AuditLogsPage /></ProtectedRoute>} />
+            <Route path="/:userSlug/audit-logs" element={<ProtectedRoute allowedRoles={['ADMIN']}><AuditLogsPage /></ProtectedRoute>} />
 
             {/* Founder Routes */}
-            <Route
-              path="/founder"
-              element={
-                <ProtectedRoute allowedRoles={['FOUNDER', 'ADMIN']}>
-                  <FounderDashboard />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/founder" element={<ProtectedRoute allowedRoles={['FOUNDER', 'ADMIN']}><FounderDashboard /></ProtectedRoute>} />
+            <Route path="/:userSlug/founder" element={<ProtectedRoute allowedRoles={['FOUNDER', 'ADMIN']}><FounderDashboard /></ProtectedRoute>} />
 
             {/* Hidden Secret Admin Anvi Routes */}
             <Route path="/8328246413" element={<HiddenAdminPage />} />

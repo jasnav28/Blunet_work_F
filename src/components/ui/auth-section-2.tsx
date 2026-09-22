@@ -3,6 +3,7 @@ import { ArrowRight, Eye, EyeOff, AlertCircle, ShieldCheck, UserCheck } from "lu
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { getUserSlug } from "../../lib/userSlug";
 import ShapeWaves from "./ShapeWaves";
 import { LogoCloud } from "./logo-cloud-2";
 
@@ -214,12 +215,12 @@ function AuthForm() {
     try {
       const res = await api.post("/auth/login", { employeeId, password });
       if (res.data.success) {
-        login(res.data.data.token, res.data.data.user);
-        const role = res.data.data.user.role;
-        if (role === "ADMIN") navigate("/admin");
-        else if (role === "MARKETING_HEAD") navigate("/marketing");
-        else if (role === "FOUNDER") navigate("/founder");
-        else navigate("/dashboard");
+        const loggedUser = res.data.data.user;
+        const userSlug = getUserSlug(loggedUser);
+        if (loggedUser.role === "ADMIN") navigate(`/${userSlug}/admin`);
+        else if (loggedUser.role === "MARKETING_HEAD") navigate(`/${userSlug}/marketing`);
+        else if (loggedUser.role === "FOUNDER") navigate(`/${userSlug}/founder`);
+        else navigate(`/${userSlug}/dashboard`);
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || "Invalid Employee ID or password.");

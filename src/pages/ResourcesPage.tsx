@@ -10,6 +10,72 @@ import { Resource } from '../types';
 
 const PUBLIC_RESOURCES: Resource[] = [
   {
+    id: 'public-blunet-portfolio',
+    name: 'BluNet IT Services - Corporate Service Portfolio',
+    description: 'Official corporate service portfolio detailing BluNet IT Services, enterprise solutions, and capabilities.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'Company Policy',
+    category: { id: 'Company Policy', name: 'Company Policy' },
+    fileUploadId: 'public-blunet-portfolio-file',
+    fileUpload: {
+      id: 'public-blunet-portfolio-file',
+      originalName: 'BluNet IT Services - Corporate Service Portfolio.pdf',
+      size: 263643,
+      storageKey: '/BluNet IT Services - Corporate Service Portfolio.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'public-blunet-it-services',
+    name: 'BluNet IT Services Overview',
+    description: 'Comprehensive overview of BluNet IT Services, core technologies, and enterprise service catalog.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'Company Policy',
+    category: { id: 'Company Policy', name: 'Company Policy' },
+    fileUploadId: 'public-blunet-it-services-file',
+    fileUpload: {
+      id: 'public-blunet-it-services-file',
+      originalName: 'BlunetITServices.pdf',
+      size: 518545,
+      storageKey: '/BlunetITServices.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'public-blunet-internship',
+    name: 'BluNet Internship Program & Policy',
+    description: 'Official BluNet Internship program overview, roles, learning paths, and policy document.',
+    version: '1.0',
+    visibility: 'ALL',
+    categoryId: 'Company Policy',
+    category: { id: 'Company Policy', name: 'Company Policy' },
+    fileUploadId: 'public-blunet-internship-file',
+    fileUpload: {
+      id: 'public-blunet-internship-file',
+      originalName: 'BluNet internship.pdf',
+      size: 1319965,
+      storageKey: '/BluNet internship.pdf',
+      mimeType: 'application/pdf',
+      uploadedById: 'system',
+      createdAt: new Date().toISOString(),
+    },
+    uploadedById: 'system',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
     id: 'public-g1',
     name: 'G1 - Company Policy & Standard Guidelines',
     description: 'Core organizational policies, employee code of conduct, and operational standards.',
@@ -193,16 +259,26 @@ export const ResourcesPage: React.FC = () => {
       });
       const apiResources = res.data.success ? res.data.data : [];
       const combined = [...PUBLIC_RESOURCES, ...apiResources];
-      const filtered = combined.filter(r => {
-        const matchesCategory = selectedCategory === 'ALL' || r.categoryId === selectedCategory || r.category?.name === selectedCategory;
+      const filtered = combined.filter((r: Resource) => {
+        const matchesCategory =
+          selectedCategory === 'ALL' ||
+          r.categoryId === selectedCategory ||
+          r.category?.name === selectedCategory ||
+          (selectedCategory.toLowerCase().includes('company') &&
+            (r.categoryId?.toLowerCase().includes('company') || (r.category?.name && r.category.name.toLowerCase().includes('company'))));
         const matchesSearch = !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.description?.toLowerCase().includes(search.toLowerCase());
         return matchesCategory && matchesSearch;
       });
       setResources(filtered);
     } catch (err) {
       console.error('Failed to load resources from API, using public library:', err);
-      const filtered = PUBLIC_RESOURCES.filter(r => {
-        const matchesCategory = selectedCategory === 'ALL' || r.categoryId === selectedCategory || r.category?.name === selectedCategory;
+      const filtered = PUBLIC_RESOURCES.filter((r: Resource) => {
+        const matchesCategory =
+          selectedCategory === 'ALL' ||
+          r.categoryId === selectedCategory ||
+          r.category?.name === selectedCategory ||
+          (selectedCategory.toLowerCase().includes('company') &&
+            (r.categoryId?.toLowerCase().includes('company') || (r.category?.name && r.category.name.toLowerCase().includes('company'))));
         const matchesSearch = !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.description?.toLowerCase().includes(search.toLowerCase());
         return matchesCategory && matchesSearch;
       });

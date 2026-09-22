@@ -19,6 +19,10 @@ export const MarketingTeamPage: React.FC = () => {
   const [teamPerf, setTeamPerf] = useState<any>(null);
   const [perfLoading, setPerfLoading] = useState(true);
 
+  // Independent Graph Modes: Calls graph defaults to Daily (Day), Deals graph defaults to Monthly (Month)
+  const [callGraphMode, setCallGraphMode] = useState<'daily' | 'monthly'>('daily');
+  const [dealGraphMode, setDealGraphMode] = useState<'monthly' | 'daily'>('monthly');
+
   // Add Marketing Member Modal
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [name, setName] = useState('');
@@ -312,12 +316,38 @@ export const MarketingTeamPage: React.FC = () => {
         {/* PERFORMANCE GRAPHS */}
         {teamPerf?.members && teamPerf.members.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-            {/* Calls Completed vs Target Chart */}
+            {/* Calls Completed vs Target Chart (DAILY / DAY PERIOD BY DEFAULT) */}
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center justify-between">
-                <span>Calls Completed vs Target per Member</span>
-                <span className="text-[10px] text-slate-400 font-normal">Period: {period.replace('_', ' ')}</span>
-              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    Calls Completed vs Target per Member
+                  </h3>
+                  <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">
+                    PERIOD: {callGraphMode === 'daily' ? 'TODAY (DAILY TARGET)' : 'THIS MONTH (MONTHLY TARGET)'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1 bg-white border border-slate-200 p-0.5 rounded-lg">
+                  <button
+                    onClick={() => setCallGraphMode('daily')}
+                    className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${
+                      callGraphMode === 'daily' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Today (Daily)
+                  </button>
+                  <button
+                    onClick={() => setCallGraphMode('monthly')}
+                    className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${
+                      callGraphMode === 'monthly' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                </div>
+              </div>
+
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={teamPerf.members} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
@@ -326,19 +356,55 @@ export const MarketingTeamPage: React.FC = () => {
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="callsCompleted" name="Calls Completed" fill="#2563eb" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="callTarget" name="Call Target" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey={callGraphMode === 'daily' ? 'todayCalls' : 'callsCompleted'}
+                      name={callGraphMode === 'daily' ? 'Calls Completed Today' : 'Calls Completed'}
+                      fill="#2563eb"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey={callGraphMode === 'daily' ? 'dailyCallTarget' : 'callTarget'}
+                      name={callGraphMode === 'daily' ? 'Daily Call Target (20)' : 'Monthly Call Target'}
+                      fill="#94a3b8"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Deals Closed vs Target Chart */}
+            {/* Deals Closed vs Target Chart (MONTHLY / MONTH PERIOD BY DEFAULT) */}
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center justify-between">
-                <span>Deals Closed vs Target per Member</span>
-                <span className="text-[10px] text-slate-400 font-normal">Period: {period.replace('_', ' ')}</span>
-              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    Deals Closed vs Target per Member
+                  </h3>
+                  <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">
+                    PERIOD: {dealGraphMode === 'monthly' ? 'THIS MONTH (MONTHLY TARGET)' : 'TODAY (DAILY)'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1 bg-white border border-slate-200 p-0.5 rounded-lg">
+                  <button
+                    onClick={() => setDealGraphMode('monthly')}
+                    className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${
+                      dealGraphMode === 'monthly' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    This Month
+                  </button>
+                  <button
+                    onClick={() => setDealGraphMode('daily')}
+                    className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${
+                      dealGraphMode === 'daily' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Today
+                  </button>
+                </div>
+              </div>
+
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={teamPerf.members} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
@@ -347,8 +413,18 @@ export const MarketingTeamPage: React.FC = () => {
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="dealsClosed" name="Deals Closed" fill="#059669" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="dealTarget" name="Monthly Target" fill="#cbd5e1" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey={dealGraphMode === 'monthly' ? 'monthDeals' : 'dealsClosed'}
+                      name={dealGraphMode === 'monthly' ? 'Deals Closed This Month' : 'Deals Closed Today'}
+                      fill="#059669"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey={dealGraphMode === 'monthly' ? 'monthlyDealTarget' : 'dealTarget'}
+                      name={dealGraphMode === 'monthly' ? 'Monthly Deal Target (7)' : 'Target'}
+                      fill="#cbd5e1"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

@@ -19,6 +19,7 @@ import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { useHeartbeat } from '../../hooks/useHeartbeat';
 import { Badge } from '../common/Badge';
+import { getUserSlug } from '../../lib/userSlug';
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, login, logout } = useAuth();
@@ -211,7 +212,11 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const userSlug = getUserSlug(currentUser);
+            const fullPath = isAnviRoute || item.path.startsWith('/8328246413')
+              ? item.path
+              : `/${userSlug}${item.path.startsWith('/') ? item.path : '/' + item.path}`;
+            const isActive = location.pathname === fullPath || location.pathname === item.path || (location.pathname.endsWith(item.path) && !isAnviRoute);
             
             let activeClasses = 'bg-blue-50 text-blue-600 font-semibold';
             let activeIconClasses = 'text-blue-600';
@@ -228,7 +233,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             return (
               <Link
                 key={item.path}
-                to={item.path}
+                to={fullPath}
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive ? activeClasses : inactiveClasses
