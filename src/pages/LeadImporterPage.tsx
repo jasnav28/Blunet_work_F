@@ -92,12 +92,12 @@ export const LeadImporterPage: React.FC = () => {
           </span>
         </div>
         <h1 className="text-xl font-bold text-slate-900">
-          {isAnvi ? 'Anvi Lead PDF & File Importer' : 'BluNet Lead PDF & File Importer'}
+          {isAnvi ? 'Anvi Lead Excel & File Importer' : 'BluNet Lead Excel & File Importer'}
         </h1>
         <p className="text-xs text-slate-500">
           {isAnvi
-            ? 'Upload PDF, CSV, or XLSX lead files for Anvi. Leads imported here are exclusively visible to Anvi staff.'
-            : 'Upload PDF, CSV, or XLSX lead files for BluNet IT Services. Leads imported here are visible to both BluNet and Anvi staff.'}
+            ? 'Upload Excel (.xlsx, .xls), CSV, or PDF lead files for Anvi. Leads imported here are exclusively visible to Anvi staff.'
+            : 'Upload Excel (.xlsx, .xls), CSV, or PDF lead files for BluNet IT Services. Leads imported here are visible to both BluNet and Anvi staff.'}
         </p>
       </div>
 
@@ -109,25 +109,25 @@ export const LeadImporterPage: React.FC = () => {
       )}
 
       {/* Upload Box */}
-      <Card title="Upload Lead File (PDF / CSV / XLSX)">
+      <Card title="Upload Lead File (Excel / CSV / PDF)">
         <div className="space-y-4">
           <div className="border-2 border-dashed border-slate-200 hover:border-blue-500 transition-colors rounded-xl p-8 text-center bg-slate-50/50">
             <Upload className="w-10 h-10 text-blue-600 mx-auto mb-3" />
             <p className="text-sm font-semibold text-slate-800">
-              Drag & Drop PDF / CSV / Excel file here, or browse
+              Drag & Drop Excel / CSV / PDF lead file here, or browse
             </p>
-            <p className="text-xs text-slate-400 mt-1">Supports .pdf, .csv, .xlsx, .xls (Up to 25MB)</p>
+            <p className="text-xs text-slate-400 mt-1">Supports .xlsx, .xls, .csv, .pdf (Up to 25MB)</p>
 
             <input
               type="file"
-              accept=".pdf,.csv,.xlsx,.xls"
+              accept=".xlsx,.xls,.csv,.pdf"
               onChange={handleFileSelect}
               className="hidden"
               id="lead-file-input"
             />
             <label htmlFor="lead-file-input" className="inline-block mt-4">
               <Button type="button" variant="outline" size="sm">
-                Choose File
+                Choose Excel / File
               </Button>
             </label>
           </div>

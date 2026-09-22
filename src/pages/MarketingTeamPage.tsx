@@ -201,8 +201,8 @@ export const MarketingTeamPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* PDF / CSV / XLSX LEAD FILE UPLOADER */}
-      <Card title="Upload PDF Lead Contact Numbers File">
+      {/* EXCEL / CSV / PDF LEAD FILE UPLOADER */}
+      <Card title="Upload Lead File (Excel / CSV / PDF)">
         {importMsg && (
           <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
@@ -214,20 +214,20 @@ export const MarketingTeamPage: React.FC = () => {
           <div className="border-2 border-dashed border-slate-200 hover:border-blue-500 transition-colors rounded-xl p-8 text-center bg-slate-50/50">
             <Upload className="w-10 h-10 text-blue-600 mx-auto mb-3" />
             <p className="text-sm font-semibold text-slate-800">
-              Drag & Drop PDF Lead Contact file here, or browse
+              Drag & Drop Excel / CSV / PDF lead file here, or browse
             </p>
-            <p className="text-xs text-slate-400 mt-1">Upload PDF document with business names & contact numbers</p>
+            <p className="text-xs text-slate-400 mt-1">Supports Excel (.xlsx, .xls), CSV, or PDF with business names & contact numbers</p>
 
             <input
               type="file"
-              accept=".pdf,.csv,.xlsx,.xls"
+              accept=".xlsx,.xls,.csv,.pdf"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               className="hidden"
-              id="pdf-lead-input"
+              id="excel-lead-input"
             />
-            <label htmlFor="pdf-lead-input" className="inline-block mt-4">
+            <label htmlFor="excel-lead-input" className="inline-block mt-4">
               <Button type="button" variant="outline" size="sm">
-                Choose PDF / CSV File
+                Choose Excel / File
               </Button>
             </label>
           </div>
@@ -243,7 +243,7 @@ export const MarketingTeamPage: React.FC = () => {
               </div>
 
               <Button onClick={handleAnalyzeFile} loading={analyzing}>
-                Parse PDF Contact Leads
+                Parse Contact Leads
               </Button>
             </div>
           )}
@@ -252,7 +252,7 @@ export const MarketingTeamPage: React.FC = () => {
 
       {/* PREVIEW & CONFIRM IMPORT */}
       {preview && (
-        <Card title="PDF Lead Contacts Import Preview">
+        <Card title="Lead Contacts Import Preview">
           <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="bg-slate-50 border-slate-200">
