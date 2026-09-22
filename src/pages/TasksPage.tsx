@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, CheckSquare, MessageSquare, Clock, UserCheck, Calendar } from 'lucide-react';
+import { Plus, CheckSquare, MessageSquare, Clock, UserCheck, Calendar, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Card } from '../components/common/Card';
@@ -93,6 +93,16 @@ export const TasksPage: React.FC = () => {
       setSelectedTask(null);
     } catch (err) {
       console.error('Failed to add comment:', err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm('Are you sure you want to remove this task?')) return;
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      fetchTasks();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Failed to remove task.');
     }
   };
 
@@ -219,6 +229,16 @@ export const TasksPage: React.FC = () => {
                     {task.status === 'IN_PROGRESS' && (
                       <Button size="sm" variant="secondary" onClick={() => handleStatusChange(task.id, 'COMPLETED')}>
                         Complete Task
+                      </Button>
+                    )}
+                    {canAssignTask && (
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => handleDeleteTask(task.id)}
+                        icon={<Trash2 className="w-3.5 h-3.5" />}
+                      >
+                        Remove
                       </Button>
                     )}
                   </div>
