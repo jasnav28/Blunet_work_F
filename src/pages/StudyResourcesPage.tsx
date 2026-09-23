@@ -83,18 +83,31 @@ export const StudyResourcesPage: React.FC = () => {
   const fetchCodingTasks = async () => {
     try {
       const res = await api.get(`/study/tasks?month=${selectedMonth}`);
-      if (res.data.success) {
-        const { tasks, completedTasks, totalTasks } = res.data.data;
+      if (res.data.success && res.data.data) {
+        const tasks = res.data.data.tasks || [];
+        const completedTasks = res.data.data.completedTasks || 0;
+        const totalTasks = res.data.data.totalTasks || 40;
         setCodingTasks(tasks);
         setTasksCompletedCount(completedTasks);
         setTotalTasksCount(totalTasks);
 
-        if (!selectedCodingTask && tasks.length > 0) {
-          selectCodingTask(tasks[0]);
+        if (tasks.length > 0) {
+          setSelectedCodingTask((prev) => {
+            if (prev) {
+              const updated = tasks.find((t: StudyCodingTask) => t.id === prev.id);
+              return updated || tasks[0];
+            }
+            return tasks[0];
+          });
+          setTaskUserCode((prev) => {
+            if (prev) return prev;
+            return tasks[0]?.submittedCode || tasks[0]?.starterCode || '';
+          });
         }
       }
     } catch (err) {
       console.error('Failed to load coding tasks:', err);
+      setCodingTasks([]);
     }
   };
 
@@ -102,11 +115,12 @@ export const StudyResourcesPage: React.FC = () => {
     if (!isAdminOrStaff) return;
     try {
       const res = await api.get('/study/admin-overview');
-      if (res.data.success) {
+      if (res.data.success && Array.isArray(res.data.data)) {
         setAdminReport(res.data.data);
       }
     } catch (err) {
       console.error('Failed to load admin study overview:', err);
+      setAdminReport([]);
     }
   };
 
@@ -475,17 +489,17 @@ export const StudyResourcesPage: React.FC = () => {
                 <div className="lg:col-span-4 space-y-4">
                   <Card title="Course Modules" subtitle={`${activeCourse.totalModules} Modules • ${activeCourse.totalLessons} Lessons`}>
                     <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
-                      {activeCourse.modules.map((mod) => (
+                      {(activeCourse.modules || []).map((mod) => (
                         <div key={mod.id} className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
                           <div className="p-3 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between">
                             <span className="text-xs font-bold text-slate-900 line-clamp-1">{mod.title}</span>
                             <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200 shrink-0">
-                              {mod.lessons.filter((l) => l.isCompleted).length} / {mod.lessons.length}
+                              {(mod.lessons || []).filter((l) => l.isCompleted).length} / {(mod.lessons || []).length}
                             </span>
                           </div>
 
                           <div className="divide-y divide-slate-100 bg-white">
-                            {mod.lessons.map((lesson) => {
+                            {(mod.lessons || []).map((lesson) => {
                               const isActive = activeLesson?.id === lesson.id;
                               return (
                                 <button
@@ -636,7 +650,7 @@ export const StudyResourcesPage: React.FC = () => {
               subtitle={`Month 1 Tasks (${tasksCompletedCount} / 40 Completed)`}
             >
               <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
-                {codingTasks.map((t) => {
+                {(codingTasks || []).map((t) => {
                   const isSelected = selectedCodingTask?.id === t.id;
                   return (
                     <button
@@ -779,14 +793,14 @@ export const StudyResourcesPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredAdminReport.length === 0 ? (
+                  {(filteredAdminReport || []).length === 0 ? (
                     <tr>
                       <td colSpan={6} className="text-center py-8 text-slate-400">
                         No employees found matching filter.
                       </td>
                     </tr>
                   ) : (
-                    filteredAdminReport.map((emp) => (
+                    (filteredAdminReport || []).map((emp) => (
                       <tr key={emp.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="p-3">
                           <div className="font-bold text-slate-900">{emp.name}</div>

@@ -378,13 +378,13 @@ export const EmployeesPage: React.FC = () => {
                   <div>
                     <span className="text-slate-400 text-[10px] uppercase font-bold">1. Regular Work Tasks</span>
                     <div className="font-bold text-base text-white">
-                      {detailModalEmployee.assignedTasks.filter((t) => t.status === 'COMPLETED').length} / {detailModalEmployee.assignedTasks.length} Done
+                      {(detailModalEmployee.assignedTasks || []).filter((t) => t.status === 'COMPLETED').length} / {(detailModalEmployee.assignedTasks || []).length} Done
                     </div>
                   </div>
                   <div>
                     <span className="text-slate-400 text-[10px] uppercase font-bold">2. Study Coding Tasks</span>
                     <div className="font-bold text-base text-blue-300">
-                      {detailModalEmployee.codingTasksCompletedCount} / 40 Done
+                      {detailModalEmployee.codingTasksCompletedCount || 0} / 40 Done
                     </div>
                   </div>
                 </div>
@@ -413,7 +413,7 @@ export const EmployeesPage: React.FC = () => {
                   }`}
                 >
                   <CheckSquare className="w-4 h-4" />
-                  1. Regular Work Tasks ({detailModalEmployee.assignedTasks.length})
+                  1. Regular Work Tasks ({(detailModalEmployee.assignedTasks || []).length})
                 </button>
 
                 <button
@@ -425,7 +425,7 @@ export const EmployeesPage: React.FC = () => {
                   }`}
                 >
                   <Code2 className="w-4 h-4" />
-                  2. Study Coding Tasks ({detailModalEmployee.codingTasksCompletedCount}/40)
+                  2. Study Coding Tasks ({detailModalEmployee.codingTasksCompletedCount || 0}/40)
                 </button>
               </div>
 
@@ -436,7 +436,7 @@ export const EmployeesPage: React.FC = () => {
                     Recent Daily Session History (Login Time to Logout Time & Active Screentime)
                   </div>
 
-                  {detailModalEmployee.activitySessions.length === 0 ? (
+                  {(detailModalEmployee.activitySessions || []).length === 0 ? (
                     <div className="text-center py-8 text-slate-400 border border-dashed border-slate-200 rounded-xl text-xs">
                       No activity session logs recorded yet.
                     </div>
@@ -453,7 +453,7 @@ export const EmployeesPage: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {detailModalEmployee.activitySessions.map((session) => (
+                          {(detailModalEmployee.activitySessions || []).map((session) => (
                             <tr key={session.id} className="hover:bg-slate-50">
                               <td className="p-3 font-mono font-medium text-slate-900">
                                 {new Date(session.loginAt).toLocaleString()}
@@ -483,16 +483,16 @@ export const EmployeesPage: React.FC = () => {
               {detailActiveTab === 'WORK_TASKS' && (
                 <div className="space-y-4">
                   <div className="text-xs font-semibold text-slate-700">
-                    Assigned Regular Work Tasks ({detailModalEmployee.assignedTasks.length} Total)
+                    Assigned Regular Work Tasks ({(detailModalEmployee.assignedTasks || []).length} Total)
                   </div>
 
-                  {detailModalEmployee.assignedTasks.length === 0 ? (
+                  {(detailModalEmployee.assignedTasks || []).length === 0 ? (
                     <div className="text-center py-8 text-slate-400 border border-dashed border-slate-200 rounded-xl text-xs">
                       No regular work tasks assigned to this employee.
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
-                      {detailModalEmployee.assignedTasks.map((t) => (
+                      {(detailModalEmployee.assignedTasks || []).map((t) => (
                         <div key={t.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
@@ -524,21 +524,21 @@ export const EmployeesPage: React.FC = () => {
                     <div>
                       <span className="font-bold text-blue-900">Month 1 Study Coding Tasks Completion:</span>
                       <span className="ml-2 font-mono font-bold text-blue-700">
-                        {detailModalEmployee.codingTasksCompletedCount} / 40 Tasks Completed
+                        {detailModalEmployee.codingTasksCompletedCount || 0} / 40 Tasks Completed
                       </span>
                     </div>
-                    <Badge variant={detailModalEmployee.codingTasksCompletedCount >= 40 ? 'success' : 'primary'}>
-                      {Math.round((detailModalEmployee.codingTasksCompletedCount / 40) * 100)}% Completed
+                    <Badge variant={(detailModalEmployee.codingTasksCompletedCount || 0) >= 40 ? 'success' : 'primary'}>
+                      {Math.round(((detailModalEmployee.codingTasksCompletedCount || 0) / 40) * 100)}% Completed
                     </Badge>
                   </div>
 
-                  {detailModalEmployee.codingSubmissions.length === 0 ? (
+                  {(detailModalEmployee.codingSubmissions || []).length === 0 ? (
                     <div className="text-center py-8 text-slate-400 border border-dashed border-slate-200 rounded-xl text-xs">
                       No study coding tasks submitted yet by this employee.
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
-                      {detailModalEmployee.codingSubmissions.map((sub) => (
+                      {(detailModalEmployee.codingSubmissions || []).map((sub) => (
                         <div key={sub.id} className="p-3 bg-white rounded-xl border border-slate-200 space-y-2 text-xs">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-slate-900 font-mono">
