@@ -13,7 +13,14 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    try {
+      const cached = sessionStorage.getItem('blunet_cached_user');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   const fetchCurrentUser = async () => {
@@ -26,6 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (loginRes.data.success && loginRes.data.data.token) {
           const newToken: string = loginRes.data.data.token;
           localStorage.setItem('blunet_token', newToken);
+          sessionStorage.setItem('blunet_cached_user', JSON.stringify(loginRes.data.data.user));
           setUser(loginRes.data.data.user);
           setLoading(false);
           return;
@@ -43,12 +51,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.get('/auth/me');
       if (res.data.success) {
+        sessionStorage.setItem('blunet_cached_user', JSON.stringify(res.data.data));
         setUser(res.data.data);
       }
     } catch (err) {
       console.error('Failed to restore user session:', err);
       if (!isHiddenAdminAuth) {
         localStorage.removeItem('blunet_token');
+        sessionStorage.removeItem('blunet_cached_user');
         setUser(null);
       }
     } finally {
@@ -62,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = (token: string, userData: UserProfile) => {
     localStorage.setItem('blunet_token', token);
+    sessionStorage.setItem('blunet_cached_user', JSON.stringify(userData));
     setUser(userData);
   };
 
@@ -73,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       localStorage.removeItem('blunet_token');
       sessionStorage.removeItem('blunet_hidden_admin_auth');
+      sessionStorage.removeItem('blunet_cached_user');
       setUser(null);
       window.location.href = '/login';
     }

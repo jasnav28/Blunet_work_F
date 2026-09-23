@@ -14,12 +14,15 @@ import {
   Building2,
   Clock,
   UserCog,
+  BookOpen,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { useHeartbeat } from '../../hooks/useHeartbeat';
 import { Badge } from '../common/Badge';
 import { getUserSlug } from '../../lib/userSlug';
+import { NetworkStatusBanner } from '../common/NetworkStatusBanner';
+import { TaskNotificationBanner } from '../common/TaskNotificationBanner';
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, login, logout } = useAuth();
@@ -78,6 +81,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         { label: 'Marketing Team', path: '/8328246413/marketing-team', icon: UserCog },
         { label: 'Lead Importer', path: '/8328246413/leads/import', icon: PhoneCall },
         { label: 'Tasks', path: '/8328246413/tasks', icon: CheckSquare },
+        { label: 'Study Resources', path: '/8328246413/study-resources', icon: BookOpen },
         { label: 'Resources', path: '/8328246413/resources', icon: FolderLock },
         { label: 'Audit Logs', path: '/8328246413/audit-logs', icon: ShieldCheck },
       ];
@@ -89,6 +93,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           { label: 'Overview', path: '/marketing', icon: BarChart3 },
           { label: 'Lead Caller', path: '/leads', icon: PhoneCall },
           { label: 'Employee Tasks', path: '/tasks', icon: CheckSquare },
+          { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
           { label: 'Resources', path: '/resources', icon: FolderLock },
         ];
       case 'ADMIN':
@@ -98,6 +103,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           { label: 'Marketing Team', path: '/marketing-team', icon: UserCog },
           { label: 'Lead Importer', path: '/leads/import', icon: PhoneCall },
           { label: 'Tasks', path: '/tasks', icon: CheckSquare },
+          { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
           { label: 'Resources', path: '/resources', icon: FolderLock },
           { label: 'Audit Logs', path: '/audit-logs', icon: ShieldCheck },
         ];
@@ -107,6 +113,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           { label: 'Employees', path: '/employees', icon: Users },
           { label: 'Marketing Stats', path: '/marketing', icon: BarChart3 },
           { label: 'Tasks Overview', path: '/tasks', icon: CheckSquare },
+          { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
           { label: 'Resources', path: '/resources', icon: FolderLock },
         ];
       case 'EMPLOYEE':
@@ -114,6 +121,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         return [
           { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
           { label: 'My Tasks', path: '/tasks', icon: CheckSquare },
+          { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
           { label: 'Company Resources', path: '/resources', icon: FolderLock },
         ];
     }
@@ -145,6 +153,10 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+      {/* Network Status & Poor Internet Indicator */}
+      <NetworkStatusBanner />
+      <TaskNotificationBanner />
+
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div

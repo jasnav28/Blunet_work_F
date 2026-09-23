@@ -128,3 +128,92 @@ export interface CompanyReport {
     targetAchievement: number;
   };
 }
+
+export interface StudyCourseSummary {
+  slug: string;
+  title: string;
+  badge: string;
+  description: string;
+  totalModules: number;
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+  currentLesson: string;
+}
+
+export interface StudyQuiz {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+export interface StudyExercise {
+  id: string;
+  instructions: string;
+  starterCode: string;
+  solutionCode: string;
+  hint?: string;
+}
+
+export interface StudyLesson {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  isCompleted?: boolean;
+  exercise?: StudyExercise;
+  quiz?: StudyQuiz;
+}
+
+export interface StudyModule {
+  id: string;
+  title: string;
+  description: string;
+  lessons: StudyLesson[];
+}
+
+export interface StudyCourseDetail {
+  slug: string;
+  title: string;
+  badge: string;
+  description: string;
+  totalModules: number;
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+  modules: StudyModule[];
+}
+
+export interface StudyCodingTask {
+  id: string;
+  taskNumber: number;
+  month: number;
+  category: 'JavaScript' | 'TypeScript';
+  title: string;
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  instructions: string;
+  starterCode: string;
+  solutionCode: string;
+  hint: string;
+  isCompleted?: boolean;
+  submittedCode?: string | null;
+  submittedAt?: string | null;
+}
+
+export interface EmployeeStudyOverview {
+  id: string;
+  name: string;
+  employeeId: string;
+  email: string;
+  role: string;
+  designation: string;
+  department?: { name: string } | null;
+  lessonsCompleted: number;
+  totalLessons: number;
+  codingTasksCompleted: number;
+  totalCodingTasks: number;
+  taskProgressPercent: number;
+  statusBadge: 'COMPLETED' | 'ON_TRACK' | 'IN_PROGRESS' | 'NOT_STARTED';
+}

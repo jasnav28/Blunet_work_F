@@ -17,6 +17,7 @@ import { MarketingTeamPage } from './pages/MarketingTeamPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
 import { FounderDashboard } from './pages/FounderDashboard';
 import { HiddenAdminPage } from './pages/HiddenAdminPage';
+import { StudyResourcesPage } from './pages/StudyResourcesPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -94,6 +95,10 @@ export const App: React.FC = () => {
             <Route path="/resources" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><ResourcesPage /></ProtectedRoute>} />
             <Route path="/:userSlug/resources" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><ResourcesPage /></ProtectedRoute>} />
 
+            {/* Study Resources */}
+            <Route path="/study-resources" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><StudyResourcesPage /></ProtectedRoute>} />
+            <Route path="/:userSlug/study-resources" element={<ProtectedRoute allowedRoles={['EMPLOYEE', 'ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><StudyResourcesPage /></ProtectedRoute>} />
+
             {/* Marketing Head Overview & Caller */}
             <Route path="/marketing" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN', 'FOUNDER']}><MarketingDashboard /></ProtectedRoute>} />
             <Route path="/:userSlug/marketing" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN', 'FOUNDER']}><MarketingDashboard /></ProtectedRoute>} />
@@ -130,6 +135,7 @@ export const App: React.FC = () => {
             <Route path="/8328246413/marketing-team" element={<ProtectedRoute><MarketingTeamPage /></ProtectedRoute>} />
             <Route path="/8328246413/leads/import" element={<ProtectedRoute><LeadImporterPage /></ProtectedRoute>} />
             <Route path="/8328246413/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+            <Route path="/8328246413/study-resources" element={<ProtectedRoute><StudyResourcesPage /></ProtectedRoute>} />
             <Route path="/8328246413/resources" element={<ProtectedRoute><ResourcesPage /></ProtectedRoute>} />
             <Route path="/8328246413/audit-logs" element={<ProtectedRoute><AuditLogsPage /></ProtectedRoute>} />
 
