@@ -18,7 +18,7 @@ export const useHeartbeat = () => {
     window.addEventListener('click', handleUserActivity);
     window.addEventListener('scroll', handleUserActivity);
 
-    // Send heartbeat every 60 seconds
+    // Send heartbeat every 30 seconds
     const interval = setInterval(async () => {
       const idleDuration = (Date.now() - lastActivityTime.current) / 1000;
       const isIdle = idleDuration > 180; // 3 minutes idle threshold
@@ -26,12 +26,12 @@ export const useHeartbeat = () => {
       try {
         await api.post('/activity/heartbeat', {
           isIdle,
-          elapsedSeconds: 60,
+          elapsedSeconds: 30,
         });
       } catch (err) {
         console.warn('Heartbeat update skipped:', err);
       }
-    }, 60000);
+    }, 30000);
 
     return () => {
       window.removeEventListener('mousemove', handleUserActivity);

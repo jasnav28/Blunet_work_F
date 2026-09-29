@@ -54,9 +54,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sessionStorage.setItem('blunet_cached_user', JSON.stringify(res.data.data));
         setUser(res.data.data);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to restore user session:', err);
-      if (!isHiddenAdminAuth) {
+      // Only clear user session if explicit 401 response returned
+      if (!isHiddenAdminAuth && err.response && err.response.status === 401) {
         localStorage.removeItem('blunet_token');
         sessionStorage.removeItem('blunet_cached_user');
         setUser(null);

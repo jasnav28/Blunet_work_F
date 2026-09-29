@@ -36,11 +36,19 @@ api.interceptors.response.use(
       window.dispatchEvent(new CustomEvent('blunet-poor-network', { detail: { error: true } }));
     }
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('blunet_token');
-      sessionStorage.removeItem('blunet_cached_user');
-      const isAnviRoute = window.location.pathname.startsWith('/8328246413');
-      if (window.location.pathname !== '/login' && !isAnviRoute) {
-        window.location.href = '/login';
+      const url = error.config?.url || '';
+      const isNonCriticalBackgroundRequest =
+        url.includes('/activity/heartbeat') ||
+        url.includes('/activity/summary') ||
+        url.includes('/notifications');
+
+      if (!isNonCriticalBackgroundRequest) {
+        localStorage.removeItem('blunet_token');
+        sessionStorage.removeItem('blunet_cached_user');
+        const isAnviRoute = window.location.pathname.startsWith('/8328246413');
+        if (window.location.pathname !== '/login' && !isAnviRoute) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

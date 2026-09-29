@@ -18,6 +18,8 @@ import { AuditLogsPage } from './pages/AuditLogsPage';
 import { FounderDashboard } from './pages/FounderDashboard';
 import { HiddenAdminPage } from './pages/HiddenAdminPage';
 import { StudyResourcesPage } from './pages/StudyResourcesPage';
+import { NotificationsManagerPage } from './pages/NotificationsManagerPage';
+import { CoInternsPage } from './pages/CoInternsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -124,6 +126,14 @@ export const App: React.FC = () => {
             <Route path="/audit-logs" element={<ProtectedRoute allowedRoles={['ADMIN']}><AuditLogsPage /></ProtectedRoute>} />
             <Route path="/:userSlug/audit-logs" element={<ProtectedRoute allowedRoles={['ADMIN']}><AuditLogsPage /></ProtectedRoute>} />
 
+            {/* Notifications Manager */}
+            <Route path="/notifications-manager" element={<ProtectedRoute allowedRoles={['ADMIN']}><NotificationsManagerPage /></ProtectedRoute>} />
+            <Route path="/:userSlug/notifications-manager" element={<ProtectedRoute allowedRoles={['ADMIN']}><NotificationsManagerPage /></ProtectedRoute>} />
+
+            {/* Co-Interns Manager */}
+            <Route path="/co-interns" element={<ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><CoInternsPage /></ProtectedRoute>} />
+            <Route path="/:userSlug/co-interns" element={<ProtectedRoute allowedRoles={['ADMIN', 'MARKETING_HEAD', 'FOUNDER']}><CoInternsPage /></ProtectedRoute>} />
+
             {/* Founder Routes */}
             <Route path="/founder" element={<ProtectedRoute allowedRoles={['FOUNDER', 'ADMIN']}><FounderDashboard /></ProtectedRoute>} />
             <Route path="/:userSlug/founder" element={<ProtectedRoute allowedRoles={['FOUNDER', 'ADMIN']}><FounderDashboard /></ProtectedRoute>} />
@@ -132,6 +142,8 @@ export const App: React.FC = () => {
             <Route path="/8328246413" element={<HiddenAdminPage />} />
             <Route path="/8328246413/admin" element={<HiddenAdminPage />} />
             <Route path="/8328246413/employees" element={<ProtectedRoute><EmployeesPage /></ProtectedRoute>} />
+            <Route path="/8328246413/co-interns" element={<ProtectedRoute><CoInternsPage /></ProtectedRoute>} />
+            <Route path="/8328246413/notifications-manager" element={<ProtectedRoute><NotificationsManagerPage /></ProtectedRoute>} />
             <Route path="/8328246413/marketing-team" element={<ProtectedRoute><MarketingTeamPage /></ProtectedRoute>} />
             <Route path="/8328246413/leads/import" element={<ProtectedRoute><LeadImporterPage /></ProtectedRoute>} />
             <Route path="/8328246413/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />

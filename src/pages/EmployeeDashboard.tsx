@@ -11,7 +11,8 @@ import { Task } from '../types';
 export const EmployeeDashboard: React.FC = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [session, setSession] = useState<{ activeFormatted: string; loginTime: string } | null>(null);
+  const [session, setSession] = useState<{ activeFormatted: string; activeSeconds?: number; loginTime: string } | null>(null);
+  const [liveSeconds, setLiveSeconds] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
@@ -21,7 +22,12 @@ export const EmployeeDashboard: React.FC = () => {
         api.get('/activity/summary'),
       ]);
       if (tasksRes.data.success) setTasks(tasksRes.data.data);
-      if (sessionRes.data.success) setSession(sessionRes.data.data);
+      if (sessionRes.data.success) {
+        setSession(sessionRes.data.data);
+        if (typeof sessionRes.data.data.activeSeconds === 'number') {
+          setLiveSeconds(sessionRes.data.data.activeSeconds);
+        }
+      }
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
@@ -31,7 +37,25 @@ export const EmployeeDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    // Poll session summary every 30s to keep backend sync
+    const syncInterval = setInterval(fetchData, 30000);
+    return () => clearInterval(syncInterval);
   }, []);
+
+  // Live 1-second timer ticker
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLiveSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatLiveDuration = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    return `${hours}h ${mins}m ${secs.toString().padStart(2, '0')}s`;
+  };
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
     try {
@@ -58,10 +82,12 @@ export const EmployeeDashboard: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3 bg-white/10 backdrop-blur-xs px-4 py-2.5 rounded-xl text-xs font-medium border border-white/20">
-          <Clock className="w-4 h-4 text-blue-200" />
+          <Clock className="w-4 h-4 text-blue-200 animate-pulse" />
           <div>
             <div className="text-blue-200 text-[10px] uppercase tracking-wider">Today's Active Time</div>
-            <div className="text-base font-bold">{session?.activeFormatted || 'Calculating...'}</div>
+            <div className="text-base font-bold font-mono">
+              {liveSeconds > 0 ? formatLiveDuration(liveSeconds) : (session?.activeFormatted || '0h 0m 00s')}
+            </div>
           </div>
         </div>
       </div>

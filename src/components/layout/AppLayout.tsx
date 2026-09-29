@@ -15,6 +15,8 @@ import {
   Clock,
   UserCog,
   BookOpen,
+  Bell,
+  GraduationCap,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
@@ -78,6 +80,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         { label: 'Overview', path: isAnviRoute ? '/8328246413/admin' : '/marketing', icon: isAnviRoute ? LayoutDashboard : BarChart3 },
         { label: 'Lead Caller', path: '/leads', icon: PhoneCall },
         { label: 'Employees', path: '/8328246413/employees', icon: Users },
+        { label: 'Co-Interns', path: '/8328246413/co-interns', icon: GraduationCap },
+        { label: 'Notifications', path: '/8328246413/notifications-manager', icon: Bell },
         { label: 'Marketing Team', path: '/8328246413/marketing-team', icon: UserCog },
         { label: 'Lead Importer', path: '/8328246413/leads/import', icon: PhoneCall },
         { label: 'Tasks', path: '/8328246413/tasks', icon: CheckSquare },
@@ -93,6 +97,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           { label: 'Overview', path: '/marketing', icon: BarChart3 },
           { label: 'Lead Caller', path: '/leads', icon: PhoneCall },
           { label: 'Employee Tasks', path: '/tasks', icon: CheckSquare },
+          { label: 'Co-Interns', path: '/co-interns', icon: GraduationCap },
           { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
           { label: 'Resources', path: '/resources', icon: FolderLock },
         ];
@@ -100,6 +105,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         return [
           { label: 'Overview', path: '/admin', icon: LayoutDashboard },
           { label: 'Employees', path: '/employees', icon: Users },
+          { label: 'Co-Interns', path: '/co-interns', icon: GraduationCap },
+          { label: 'Notifications', path: '/notifications-manager', icon: Bell },
           { label: 'Marketing Team', path: '/marketing-team', icon: UserCog },
           { label: 'Lead Importer', path: '/leads/import', icon: PhoneCall },
           { label: 'Tasks', path: '/tasks', icon: CheckSquare },
@@ -111,6 +118,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         return [
           { label: 'Executive Dashboard', path: '/founder', icon: Building2 },
           { label: 'Employees', path: '/employees', icon: Users },
+          { label: 'Co-Interns', path: '/co-interns', icon: GraduationCap },
           { label: 'Marketing Stats', path: '/marketing', icon: BarChart3 },
           { label: 'Tasks Overview', path: '/tasks', icon: CheckSquare },
           { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
