@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WifiOff, AlertTriangle, X, RefreshCw, CheckCircle2, ServerCrash } from 'lucide-react';
+import { WifiOff, X, RefreshCw, CheckCircle2, ServerCrash } from 'lucide-react';
 import { networkMonitor, NetworkStatusState } from '../../lib/networkMonitor';
 
 export const NetworkStatusBanner: React.FC = () => {
@@ -9,7 +9,6 @@ export const NetworkStatusBanner: React.FC = () => {
   useEffect(() => {
     const unsubscribe = networkMonitor.subscribe((state) => {
       setNetworkState(state);
-      // Automatically show banner on state change unless explicitly dismissed
       if (state.status !== 'ONLINE') {
         setDismissed(false);
       }
@@ -24,13 +23,13 @@ export const NetworkStatusBanner: React.FC = () => {
     return null;
   }
 
-  // 1. Browser Offline State
+  // 1. Browser Offline State (navigator.onLine === false)
   if (networkState.status === 'OFFLINE') {
     return (
       <div className="fixed top-0 left-0 right-0 z-[9999] bg-amber-600 text-white px-4 py-2.5 shadow-md flex items-center justify-between text-xs font-medium animate-in slide-in-from-top duration-300">
         <div className="flex items-center gap-2.5 mx-auto sm:mx-0">
           <WifiOff className="w-4 h-4 text-amber-200 animate-pulse shrink-0" />
-          <span>{networkState.message || "You're offline. Please check your internet connection."}</span>
+          <span>{networkState.message || 'No Internet Connection. Please check your network.'}</span>
         </div>
         <button
           onClick={() => window.location.reload()}
@@ -43,7 +42,7 @@ export const NetworkStatusBanner: React.FC = () => {
     );
   }
 
-  // 2. Server Unavailable State (Railway / API Unreachable)
+  // 2. Server Unavailable State (Railway / API Unreachable / 502/503/504)
   if (networkState.status === 'SERVER_UNAVAILABLE') {
     return (
       <div className="fixed top-0 left-0 right-0 z-[9999] bg-rose-700 text-white px-4 py-2.5 shadow-md flex items-center justify-between text-xs font-medium animate-in slide-in-from-top duration-300">
@@ -71,26 +70,7 @@ export const NetworkStatusBanner: React.FC = () => {
     );
   }
 
-  // 3. Degraded API Latency State
-  if (networkState.status === 'DEGRADED') {
-    return (
-      <div className="fixed top-0 left-0 right-0 z-[9999] bg-amber-500 border-b border-amber-600 text-slate-950 px-4 py-2 shadow-md flex items-center justify-between text-xs font-semibold animate-in slide-in-from-top duration-300">
-        <div className="flex items-center gap-2.5 mx-auto sm:mx-0">
-          <AlertTriangle className="w-4 h-4 text-slate-900 shrink-0" />
-          <span>{networkState.message || 'Server response is taking longer than expected.'}</span>
-        </div>
-        <button
-          onClick={() => setDismissed(true)}
-          className="p-1 hover:bg-amber-600/30 rounded text-slate-950 transition-all cursor-pointer"
-          title="Dismiss notification"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    );
-  }
-
-  // 4. Recovered State
+  // 3. Recovered State
   if (networkState.status === 'RECOVERED') {
     return (
       <div className="fixed top-0 left-0 right-0 z-[9999] bg-emerald-600 text-white px-4 py-2.5 shadow-md flex items-center justify-between text-xs font-medium animate-in slide-in-from-top duration-300">
