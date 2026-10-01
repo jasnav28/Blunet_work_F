@@ -25,7 +25,15 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1,
+      refetchOnReconnect: 'always',
+      staleTime: 1000 * 60 * 5, // 5 minutes stale time
+      retry: (failureCount, error: any) => {
+        // Do not retry client 4xx errors (400, 401, 403, 404)
+        const status = error?.response?.status;
+        if (status && status >= 400 && status < 500) return false;
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff max 10s
     },
   },
 });
