@@ -19,20 +19,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle responses and emit poor network indicator event on slow network delay or timeouts
+// Handle responses and auth interceptors cleanly
 api.interceptors.response.use(
   (response) => {
-    const startTime = (response.config as any).metadata?.startTime;
-    if (startTime) {
-      const duration = Date.now() - startTime;
-      if (duration > 3500) {
-        window.dispatchEvent(new CustomEvent('blunet-poor-network', { detail: { duration } }));
-      }
-    }
     return response;
   },
   (error) => {
-    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout') || !error.response) {
+    if (error.code === 'ECONNABORTED' && !navigator.onLine) {
       window.dispatchEvent(new CustomEvent('blunet-poor-network', { detail: { error: true } }));
     }
     if (error.response && error.response.status === 401) {

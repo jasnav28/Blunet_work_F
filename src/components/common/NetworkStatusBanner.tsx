@@ -21,17 +21,17 @@ export const NetworkStatusBanner: React.FC = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Check Network Information API if available
+    // Check Network Information API if explicitly throttled
     const nav = navigator as any;
     const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
 
     const checkNetworkSpeed = () => {
       if (!connection) return;
-      const { effectiveType, rtt, downlink } = connection;
-      if (effectiveType === 'slow-2g' || effectiveType === '2g' || (rtt && rtt > 1500) || (downlink && downlink < 0.4)) {
+      const { effectiveType } = connection;
+      if (effectiveType === 'slow-2g') {
         setIsPoorNetwork(true);
-        setSlowReason(`Low speed connection (${effectiveType || 'slow'} / RTT: ${rtt || '>1500'}ms)`);
-      } else if (effectiveType === '4g' && (!rtt || rtt < 800)) {
+        setSlowReason('Low speed connection (slow-2g)');
+      } else {
         setIsPoorNetwork(false);
       }
     };
@@ -41,28 +41,12 @@ export const NetworkStatusBanner: React.FC = () => {
       connection.addEventListener('change', checkNetworkSpeed);
     }
 
-    // Listen to custom poor-network events from API interceptor
-    const handlePoorNetworkEvent = (e: any) => {
-      if (!isOffline) {
-        setIsPoorNetwork(true);
-        setDismissed(false);
-        if (e.detail?.duration) {
-          setSlowReason(`Slow API response (${(e.detail.duration / 1000).toFixed(1)}s delay)`);
-        } else {
-          setSlowReason('Slow network or request timeout');
-        }
-      }
-    };
-
-    window.addEventListener('blunet-poor-network', handlePoorNetworkEvent);
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       if (connection) {
         connection.removeEventListener('change', checkNetworkSpeed);
       }
-      window.removeEventListener('blunet-poor-network', handlePoorNetworkEvent);
     };
   }, [isOffline]);
 
