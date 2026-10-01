@@ -217,3 +217,15 @@ export interface EmployeeStudyOverview {
   taskProgressPercent: number;
   statusBadge: 'COMPLETED' | 'ON_TRACK' | 'IN_PROGRESS' | 'NOT_STARTED';
 }
+
+export interface CoInternStudyTopic {
+  id: string;
+  topicNumber: number;
+  title: string;
+  duration: string;
+  week: number;
+  status: 'OPEN' | 'CLOSED';
+  content?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}

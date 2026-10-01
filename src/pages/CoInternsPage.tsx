@@ -60,6 +60,7 @@ export const CoInternsPage: React.FC = () => {
   const [designation, setDesignation] = useState('Co-Intern');
   const [departmentId, setDepartmentId] = useState('');
   const [temporaryPassword, setTemporaryPassword] = useState('CoIntern#2026');
+  const [joiningDate, setJoiningDate] = useState('2026-10-05');
   const [submitting, setSubmitting] = useState(false);
 
   // Allot Task Modal State
@@ -131,6 +132,7 @@ export const CoInternsPage: React.FC = () => {
         designation,
         departmentId: departmentId || undefined,
         temporaryPassword,
+        joiningDate: joiningDate || '2026-10-05',
       };
 
       const res = await api.post('/employees/co-intern', payload);
@@ -404,17 +406,31 @@ export const CoInternsPage: React.FC = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-              Temporary Login Password <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={temporaryPassword}
-              onChange={(e) => setTemporaryPassword(e.target.value)}
-              required
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 font-mono"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Temporary Login Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={temporaryPassword}
+                onChange={(e) => setTemporaryPassword(e.target.value)}
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 font-mono"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Date of Joining <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={joiningDate}
+                onChange={(e) => setJoiningDate(e.target.value)}
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 bg-white"
+              />
+            </div>
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">

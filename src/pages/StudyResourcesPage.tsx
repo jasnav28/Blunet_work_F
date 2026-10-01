@@ -14,11 +14,19 @@ import {
   FileCheck,
   Check,
   Lock,
+  Unlock,
   Terminal,
   Send,
   Users,
   ShieldCheck,
   Search,
+  Edit3,
+  Sliders,
+  X,
+  ExternalLink,
+  Layers,
+  Clock,
+  Layout,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -31,15 +39,22 @@ import {
   StudyLesson,
   StudyCodingTask,
   EmployeeStudyOverview,
+  CoInternStudyTopic,
 } from '../types';
 
 export const StudyResourcesPage: React.FC = () => {
   const { user } = useAuth();
   const isAdminOrStaff = user?.role === 'ADMIN' || user?.role === 'MARKETING_HEAD' || user?.role === 'FOUNDER';
+  
+  // Detect if user is a Co-Intern (ID starts with CO-IN or designation includes Co-Intern)
+  const isCoIntern =
+    user?.employeeId?.toUpperCase().startsWith('CO-IN') ||
+    user?.designation?.toLowerCase().includes('co-intern');
 
   // Navigation & Tab State
-  const [activeTab, setActiveTab] = useState<'MATERIALS' | 'CODING_TASKS' | 'ADMIN_MONITOR'>('MATERIALS');
+  const [activeTab, setActiveTab] = useState<'MATERIALS' | 'CODING_TASKS' | 'ADMIN_MONITOR' | 'CO_INTERN_ADMIN'>('MATERIALS');
   const [selectedMonth, setSelectedMonth] = useState<number>(1);
+  const [selectedWeek, setSelectedWeek] = useState<number>(1);
 
   // Courses State
   const [courses, setCourses] = useState<StudyCourseSummary[]>([]);
@@ -48,11 +63,17 @@ export const StudyResourcesPage: React.FC = () => {
   const [activeCourse, setActiveCourse] = useState<StudyCourseDetail | null>(null);
   const [activeLesson, setActiveLesson] = useState<StudyLesson | null>(null);
 
-  // Exercise & Quiz Interactive States
-  const [exerciseCode, setExerciseCode] = useState('');
-  const [showSolution, setShowSolution] = useState(false);
-  const [selectedQuizOption, setSelectedQuizOption] = useState<number | null>(null);
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  // Co-Intern Topics State
+  const [coInternTopics, setCoInternTopics] = useState<CoInternStudyTopic[]>([]);
+  const [activeCoInternTopic, setActiveCoInternTopic] = useState<CoInternStudyTopic | null>(null);
+  const [closedToastMessage, setClosedToastMessage] = useState<string | null>(null);
+
+  // Admin Canva-Style Editor State
+  const [editingTopic, setEditingTopic] = useState<CoInternStudyTopic | null>(null);
+  const [editorTitle, setEditorTitle] = useState('');
+  const [editorDuration, setEditorDuration] = useState('');
+  const [editorContent, setEditorContent] = useState('');
+  const [savingEditor, setSavingEditor] = useState(false);
 
   // 40 Monthly Coding Tasks State
   const [codingTasks, setCodingTasks] = useState<StudyCodingTask[]>([]);
@@ -77,6 +98,17 @@ export const StudyResourcesPage: React.FC = () => {
       console.error('Failed to load study courses:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCoInternTopics = async () => {
+    try {
+      const res = await api.get('/study/co-intern-topics');
+      if (res.data.success) {
+        setCoInternTopics(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load Co-Intern topics:', err);
     }
   };
 
@@ -126,11 +158,77 @@ export const StudyResourcesPage: React.FC = () => {
 
   useEffect(() => {
     fetchCourses();
+    fetchCoInternTopics();
     fetchCodingTasks();
     if (isAdminOrStaff) {
       fetchAdminReport();
     }
   }, [selectedMonth, user]);
+
+  const toggleTopicStatus = async (topicId: string) => {
+    try {
+      const res = await api.patch(`/study/co-intern-topics/${topicId}/toggle`);
+      if (res.data.success) {
+        setCoInternTopics((prev) =>
+          prev.map((t) => (t.id === topicId ? { ...t, status: res.data.data.status } : t))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle topic status:', err);
+    }
+  };
+
+  const openCanvaEditor = (topic: CoInternStudyTopic) => {
+    setEditingTopic(topic);
+    setEditorTitle(topic.title);
+    setEditorDuration(topic.duration);
+    setEditorContent(topic.content || '');
+  };
+
+  const handleSaveTopicContent = async () => {
+    if (!editingTopic) return;
+    setSavingEditor(true);
+    try {
+      const res = await api.put(`/study/co-intern-topics/${editingTopic.id}/content`, {
+        title: editorTitle,
+        duration: editorDuration,
+        content: editorContent,
+      });
+
+      if (res.data.success) {
+        setCoInternTopics((prev) =>
+          prev.map((t) => (t.id === editingTopic.id ? res.data.data : t))
+        );
+        setEditingTopic(null);
+      }
+    } catch (err) {
+      console.error('Failed to update topic content:', err);
+    } finally {
+      setSavingEditor(false);
+    }
+  };
+
+  const insertTemplateToEditor = (templateType: string) => {
+    if (templateType === 'ROADMAP') {
+      setEditorContent(
+        (prev) =>
+          prev +
+          `\n\n### 🚀 Learning Roadmap & Day-by-Day Schedule\n- **Day 1**: Core Architecture & Environment Setup\n- **Day 2**: Fundamental Concepts & Practical Syntax\n- **Day 3**: Advanced Features & Optimization\n- **Day 4**: Hands-on Real World Project`
+      );
+    } else if (templateType === 'CODE') {
+      setEditorContent(
+        (prev) =>
+          prev +
+          `\n\n\`\`\`javascript\n// BluNet Co-Intern Implementation Snippet\nfunction executeWorkflow() {\n  console.log("Co-Intern Task Executed Successfully!");\n}\nexecuteWorkflow();\n\`\`\``
+      );
+    } else if (templateType === 'BANNER') {
+      setEditorContent(
+        (prev) =>
+          prev +
+          `\n\n> [!IMPORTANT]\n> Always double-check your environment credentials before pushing changes to staging!`
+      );
+    }
+  };
 
   const selectCodingTask = (task: StudyCodingTask) => {
     setSelectedCodingTask(task);
@@ -150,7 +248,6 @@ export const StudyResourcesPage: React.FC = () => {
       });
 
       if (res.data.success) {
-        // Update task state locally
         setCodingTasks((prev) =>
           prev.map((t) =>
             t.id === selectedCodingTask.id ? { ...t, isCompleted: true, submittedCode: taskUserCode } : t
@@ -159,7 +256,6 @@ export const StudyResourcesPage: React.FC = () => {
         setSelectedCodingTask((prev) => (prev ? { ...prev, isCompleted: true, submittedCode: taskUserCode } : prev));
         setTasksCompletedCount((prev) => Math.min(prev + 1, totalTasksCount));
 
-        // Refresh admin stats if admin
         fetchAdminReport();
       }
     } catch (err) {
@@ -195,14 +291,6 @@ export const StudyResourcesPage: React.FC = () => {
 
   const selectLesson = (lesson: StudyLesson | null) => {
     setActiveLesson(lesson);
-    setShowSolution(false);
-    setSelectedQuizOption(null);
-    setQuizSubmitted(false);
-    if (lesson?.exercise) {
-      setExerciseCode(lesson.exercise.starterCode);
-    } else {
-      setExerciseCode('');
-    }
   };
 
   const toggleLessonCompletion = async (lesson: StudyLesson) => {
@@ -280,6 +368,13 @@ export const StudyResourcesPage: React.FC = () => {
         }
       } else if (inCodeBlock) {
         codeBlockBuffer.push(line);
+      } else if (line.startsWith('> [!IMPORTANT]') || line.startsWith('> [!NOTE]')) {
+        elements.push(
+          <div key={`banner-${idx}`} className="my-3 p-3.5 rounded-xl bg-blue-50 border-l-4 border-blue-600 text-blue-900 text-xs font-medium">
+            <span className="font-bold block text-[11px] uppercase tracking-wider text-blue-700 mb-0.5">Important Note</span>
+            {line.replace(/> \[\!(IMPORTANT|NOTE)\]/, '').trim()}
+          </div>
+        );
       } else if (line.startsWith('### ')) {
         elements.push(
           <h3 key={idx} className="text-lg font-bold text-slate-900 mt-6 mb-2">
@@ -325,86 +420,178 @@ export const StudyResourcesPage: React.FC = () => {
       emp.designation.toLowerCase().includes(adminSearch.toLowerCase())
   );
 
+  const week1Topics = coInternTopics.filter((t) => t.week === 1);
+  const week2Topics = coInternTopics.filter((t) => t.week === 2);
+  const week3Topics = coInternTopics.filter((t) => t.week === 3);
+
+  const activeWeekTopics =
+    selectedWeek === 1 ? week1Topics : selectedWeek === 2 ? week2Topics : week3Topics;
+
   return (
     <div className="space-y-6">
-      {/* Welcome & Monthly Schedule Banner */}
+      {/* Toast Notification Alert for Closed Topic */}
+      {closedToastMessage && (
+        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 text-xs animate-bounce">
+          <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>{closedToastMessage}</span>
+          <button
+            onClick={() => setClosedToastMessage(null)}
+            className="ml-2 text-slate-400 hover:text-white"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Welcome & Monthly / Weekly Schedule Banner */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <span className="text-blue-200 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
             <Award className="w-4 h-4" />
-            Monthly Upskilling Program
+            {isCoIntern ? 'Co-Intern Weekly Training Program' : 'Monthly Upskilling Program'}
           </span>
-          <h1 className="text-2xl font-bold mt-1">Study Resources & Monthly Coding Tasks</h1>
+          <h1 className="text-2xl font-bold mt-1">
+            {isCoIntern ? 'Co-Intern Study Resources & Materials' : 'Study Resources & Monthly Coding Tasks'}
+          </h1>
           <p className="text-blue-100 text-sm mt-0.5">
-            Complete study materials and solve 40 mandatory monthly coding tasks.
+            {isCoIntern
+              ? 'Structured 3-week study roadmap with hands-on modules and materials.'
+              : 'Complete study materials and solve 40 mandatory monthly coding tasks.'}
           </p>
         </div>
 
         <div className="bg-white/10 backdrop-blur-xs px-4 py-3 rounded-xl border border-white/20 text-xs flex items-center gap-3">
           <Terminal className="w-5 h-5 text-blue-200 shrink-0" />
           <div>
-            <div className="text-blue-200 text-[10px] uppercase font-bold tracking-wider">Month 1 Task Completion</div>
+            <div className="text-blue-200 text-[10px] uppercase font-bold tracking-wider">
+              {isCoIntern ? 'Co-Intern Status' : 'Month 1 Task Completion'}
+            </div>
             <div className="text-base font-bold">
-              {tasksCompletedCount} / {totalTasksCount} Coding Tasks Completed
+              {isCoIntern
+                ? `12 Structured Topics`
+                : `${tasksCompletedCount} / ${totalTasksCount} Coding Tasks`}
             </div>
           </div>
         </div>
       </div>
 
-      {/* MONTHLY PROGRESSION HEADER (MONTH 1 ACTIVE, MONTH 2 & 3 LOCKED 🔒) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Month 1 Card */}
-        <div
-          onClick={() => setSelectedMonth(1)}
-          className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-            selectedMonth === 1
-              ? 'bg-blue-50/80 border-blue-600 shadow-xs'
-              : 'bg-white border-slate-200 hover:border-slate-300'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Month 1 • Active</span>
-            <Badge variant="primary">Current Month</Badge>
+      {/* PROGRESSION HEADER CARDS:
+          FOR CO-INTERNS: SHOW WEEK 1, WEEK 2, WEEK 3
+          FOR OTHERS: SHOW MONTH 1, MONTH 2 (LOCKED), MONTH 3 (LOCKED) */}
+      {isCoIntern ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Week 1 Card */}
+          <div
+            onClick={() => setSelectedWeek(1)}
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+              selectedWeek === 1
+                ? 'bg-blue-50/80 border-blue-600 shadow-xs'
+                : 'bg-white border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Week 1 • Active</span>
+              <Badge variant="primary">4 Topics</Badge>
+            </div>
+            <h3 className="font-bold text-slate-900 text-base">Nice page, Git, AWS & Docker</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Nice page (2d) • Git (4d) • AWS (4d) • Docker (5d)
+            </p>
           </div>
-          <h3 className="font-bold text-slate-900 text-base">JavaScript & TypeScript</h3>
-          <p className="text-xs text-slate-500 mt-1">
-            2 Courses • 25 Modules • 40 Mandatory Coding Tasks
-          </p>
-        </div>
 
-        {/* Month 2 Card (Locked 🔒) */}
-        <div className="p-4 rounded-xl border border-slate-200 bg-slate-100/70 text-slate-400 relative overflow-hidden select-none cursor-not-allowed">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-slate-500" />
-              Month 2 • Locked
-            </span>
-            <Badge variant="neutral">Unlocks Next Month</Badge>
+          {/* Week 2 Card */}
+          <div
+            onClick={() => setSelectedWeek(2)}
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+              selectedWeek === 2
+                ? 'bg-blue-50/80 border-blue-600 shadow-xs'
+                : 'bg-white border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Week 2</span>
+              <Badge variant="primary">4 Topics</Badge>
+            </div>
+            <h3 className="font-bold text-slate-900 text-base">Jenkins, Vercel, Prompt Eng & Nmap</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Jenkins (4d) • Vercel (2d) • Prompt Eng + React (5d) • Nmap (3d)
+            </p>
           </div>
-          <h3 className="font-bold text-slate-500 text-base">HTML5 & React Basics</h3>
-          <p className="text-xs text-slate-400 mt-1">
-            Component architecture, Hooks, JSX, and 40 Coding Tasks.
-          </p>
-        </div>
 
-        {/* Month 3 Card (Locked 🔒) */}
-        <div className="p-4 rounded-xl border border-slate-200 bg-slate-100/70 text-slate-400 relative overflow-hidden select-none cursor-not-allowed">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-slate-500" />
-              Month 3 • Locked
-            </span>
-            <Badge variant="neutral">Unlocks in 2 Months</Badge>
+          {/* Week 3 Card */}
+          <div
+            onClick={() => setSelectedWeek(3)}
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+              selectedWeek === 3
+                ? 'bg-blue-50/80 border-blue-600 shadow-xs'
+                : 'bg-white border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Week 3</span>
+              <Badge variant="primary">4 Topics</Badge>
+            </div>
+            <h3 className="font-bold text-slate-900 text-base">Wireshark, Python, JS & TypeScript</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Wireshark (2d) • Python (5d) • JavaScript (5d) • TypeScript (5d)
+            </p>
           </div>
-          <h3 className="font-bold text-slate-500 text-base">Advanced CSS & Responsive UI</h3>
-          <p className="text-xs text-slate-400 mt-1">
-            Flexbox, Grid, Tailwind, Animations, and 40 Coding Tasks.
-          </p>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Month 1 Card */}
+          <div
+            onClick={() => setSelectedMonth(1)}
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+              selectedMonth === 1
+                ? 'bg-blue-50/80 border-blue-600 shadow-xs'
+                : 'bg-white border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Month 1 • Active</span>
+              <Badge variant="primary">Current Month</Badge>
+            </div>
+            <h3 className="font-bold text-slate-900 text-base">JavaScript & TypeScript</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              2 Courses • 25 Modules • 40 Mandatory Coding Tasks
+            </p>
+          </div>
+
+          {/* Month 2 Card (Locked 🔒) */}
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-100/70 text-slate-400 relative overflow-hidden select-none cursor-not-allowed">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-slate-500" />
+                Month 2 • Locked
+              </span>
+              <Badge variant="neutral">Unlocks Next Month</Badge>
+            </div>
+            <h3 className="font-bold text-slate-500 text-base">HTML5 & React Basics</h3>
+            <p className="text-xs text-slate-400 mt-1">
+              Component architecture, Hooks, JSX, and 40 Coding Tasks.
+            </p>
+          </div>
+
+          {/* Month 3 Card (Locked 🔒) */}
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-100/70 text-slate-400 relative overflow-hidden select-none cursor-not-allowed">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-slate-500" />
+                Month 3 • Locked
+              </span>
+              <Badge variant="neutral">Unlocks in 2 Months</Badge>
+            </div>
+            <h3 className="font-bold text-slate-500 text-base">Advanced CSS & Responsive UI</h3>
+            <p className="text-xs text-slate-400 mt-1">
+              Flexbox, Grid, Tailwind, Animations, and 40 Coding Tasks.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* SUB-TAB SWITCHER */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-3 flex-wrap">
         <button
           onClick={() => {
             setActiveTab('MATERIALS');
@@ -417,7 +604,7 @@ export const StudyResourcesPage: React.FC = () => {
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          Study Materials & Courses
+          {isCoIntern ? 'Co-Intern Study Materials' : 'Study Materials & Courses'}
         </button>
 
         <button
@@ -433,17 +620,31 @@ export const StudyResourcesPage: React.FC = () => {
         </button>
 
         {isAdminOrStaff && (
-          <button
-            onClick={() => setActiveTab('ADMIN_MONITOR')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'ADMIN_MONITOR'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            Admin Task Monitor
-          </button>
+          <>
+            <button
+              onClick={() => setActiveTab('ADMIN_MONITOR')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'ADMIN_MONITOR'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              Admin Task Monitor
+            </button>
+
+            <button
+              onClick={() => setActiveTab('CO_INTERN_ADMIN')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'CO_INTERN_ADMIN'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200'
+              }`}
+            >
+              <Sliders className="w-4 h-4" />
+              CO-INTERN STUDY RESOURCES
+            </button>
+          </>
         )}
       </div>
 
@@ -452,188 +653,293 @@ export const StudyResourcesPage: React.FC = () => {
           ------------------------------------------------------------- */}
       {activeTab === 'MATERIALS' && (
         <>
-          {selectedCourseSlug && activeCourse ? (
+          {/* CO-INTERN SPECIFIC MATERIALS VIEW */}
+          {isCoIntern ? (
             <div className="space-y-6">
-              {/* Course Header Bar */}
-              <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <Button variant="outline" size="sm" onClick={() => setSelectedCourseSlug(null)}>
-                    <ArrowLeft className="w-4 h-4 mr-1" />
-                    All Courses
-                  </Button>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="primary">{activeCourse.badge}</Badge>
-                      <span className="text-xs font-medium text-slate-500">
-                        {activeCourse.completedLessons} / {activeCourse.totalLessons} Lessons Completed
-                      </span>
+              {activeCoInternTopic ? (
+                <Card>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3">
+                    <div className="flex items-center gap-3">
+                      <Button variant="outline" size="sm" onClick={() => setActiveCoInternTopic(null)}>
+                        <ArrowLeft className="w-4 h-4 mr-1" />
+                        Back to Week {selectedWeek} Topics
+                      </Button>
+                      <div>
+                        <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">
+                          Week {activeCoInternTopic.week} • Topic #{activeCoInternTopic.topicNumber}
+                        </span>
+                        <h2 className="text-xl font-bold text-slate-900 mt-0.5">{activeCoInternTopic.title}</h2>
+                      </div>
                     </div>
-                    <h1 className="text-xl font-bold text-slate-900 mt-1">{activeCourse.title} Learning Path</h1>
+
+                    <Badge variant="primary" className="shrink-0 font-mono">
+                      Duration: {activeCoInternTopic.duration}
+                    </Badge>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-3 min-w-[200px]">
-                  <div className="flex-1 bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                    <div
-                      className="bg-blue-600 h-full transition-all duration-300 rounded-full"
-                      style={{ width: `${activeCourse.progressPercent}%` }}
-                    />
+                  <div className="prose prose-slate max-w-none text-xs">
+                    {renderFormattedContent(activeCoInternTopic.content || 'No material content available.')}
                   </div>
-                  <span className="text-xs font-bold text-blue-600">{activeCourse.progressPercent}%</span>
-                </div>
-              </div>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-blue-600" />
+                      Week {selectedWeek} Co-Intern Study Materials
+                    </h2>
+                    <span className="text-xs text-slate-500 font-medium">
+                      Showing 4 Topics for Week {selectedWeek}
+                    </span>
+                  </div>
 
-              {/* Workspace Grid Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left Module Sidebar Navigation */}
-                <div className="lg:col-span-4 space-y-4">
-                  <Card title="Course Modules" subtitle={`${activeCourse.totalModules} Modules • ${activeCourse.totalLessons} Lessons`}>
-                    <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
-                      {(activeCourse.modules || []).map((mod) => (
-                        <div key={mod.id} className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
-                          <div className="p-3 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-900 line-clamp-1">{mod.title}</span>
-                            <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200 shrink-0">
-                              {(mod.lessons || []).filter((l) => l.isCompleted).length} / {(mod.lessons || []).length}
-                            </span>
-                          </div>
-
-                          <div className="divide-y divide-slate-100 bg-white">
-                            {(mod.lessons || []).map((lesson) => {
-                              const isActive = activeLesson?.id === lesson.id;
-                              return (
-                                <button
-                                  key={lesson.id}
-                                  onClick={() => selectLesson(lesson)}
-                                  className={`w-full text-left px-3.5 py-2.5 flex items-center justify-between text-xs transition-colors ${
-                                    isActive
-                                      ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600'
-                                      : 'text-slate-700 hover:bg-slate-50'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                    {lesson.isCompleted ? (
-                                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                                    ) : (
-                                      <Circle className="w-4 h-4 text-slate-300 shrink-0" />
-                                    )}
-                                    <span className="truncate">{lesson.title}</span>
-                                  </div>
-                                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {activeWeekTopics.map((topic) => {
+                      const isOpen = topic.status === 'OPEN';
+                      return (
+                        <div
+                          key={topic.id}
+                          onClick={() => {
+                            if (isOpen) {
+                              setActiveCoInternTopic(topic);
+                            } else {
+                              setClosedToastMessage(
+                                `"${topic.title}" is currently closed by Admin. Contact your manager to unlock.`
                               );
-                            })}
+                              setTimeout(() => setClosedToastMessage(null), 4000);
+                            }
+                          }}
+                          className={`p-5 rounded-2xl border-2 transition-all flex flex-col justify-between ${
+                            isOpen
+                              ? 'bg-white border-slate-200 hover:border-blue-500 hover:shadow-md cursor-pointer'
+                              : 'bg-slate-50 border-slate-200 text-slate-400 opacity-80 cursor-not-allowed'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-xs font-bold text-blue-600 uppercase font-mono">
+                                Topic #{topic.topicNumber}
+                              </span>
+                              {isOpen ? (
+                                <Badge variant="success" className="flex items-center gap-1">
+                                  <Unlock className="w-3 h-3" />
+                                  Open
+                                </Badge>
+                              ) : (
+                                <Badge variant="danger" className="flex items-center gap-1">
+                                  <Lock className="w-3 h-3" />
+                                  Closed / Unclickable
+                                </Badge>
+                              )}
+                            </div>
+
+                            <h3 className="text-base font-bold text-slate-900 mb-1">{topic.title}</h3>
+                            <p className="text-xs text-slate-500 flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 text-slate-400" />
+                              Allocated Duration: <span className="font-semibold text-slate-700">{topic.duration}</span>
+                            </p>
+                          </div>
+
+                          <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-[11px] text-slate-400">Week {topic.week} Module</span>
+                            {isOpen ? (
+                              <Button size="sm" variant="primary">
+                                Open Material <ChevronRight className="w-4 h-4 ml-1" />
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-slate-400 font-semibold flex items-center gap-1">
+                                <Lock className="w-3.5 h-3.5" /> Locked by Admin
+                              </span>
+                            )}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </Card>
+                      );
+                    })}
+                  </div>
                 </div>
-
-                {/* Right Lesson Reader */}
-                <div className="lg:col-span-8 space-y-6">
-                  {activeLesson ? (
-                    <Card>
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3">
-                        <div>
-                          <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Active Lesson</span>
-                          <h2 className="text-xl font-bold text-slate-900 mt-0.5">{activeLesson.title}</h2>
-                          <p className="text-xs text-slate-500 mt-0.5">{activeLesson.description}</p>
-                        </div>
-
-                        <Button
-                          variant={activeLesson.isCompleted ? 'secondary' : 'primary'}
-                          className={activeLesson.isCompleted ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : ''}
-                          size="sm"
-                          onClick={() => toggleLessonCompletion(activeLesson)}
-                        >
-                          {activeLesson.isCompleted ? (
-                            <>
-                              <Check className="w-4 h-4 mr-1.5" />
-                              Lesson Completed
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                              Mark as Complete
-                            </>
-                          )}
-                        </Button>
-                      </div>
-
-                      <div className="prose prose-slate max-w-none text-xs">
-                        {renderFormattedContent(activeLesson.content)}
-                      </div>
-                    </Card>
-                  ) : (
-                    <Card className="text-center py-12">
-                      <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                      <p className="text-base font-semibold text-slate-700">Select a Lesson to Begin</p>
-                    </Card>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {courses.map((course) => {
-                const isJs = course.slug === 'javascript';
-                const Icon = isJs ? FileCode : FileCheck;
-
-                return (
-                  <Card key={course.slug} className="flex flex-col justify-between hover:border-blue-300 transition-all">
+            /* STANDARD EMPLOYEE COURSES VIEW */
+            selectedCourseSlug && activeCourse ? (
+              <div className="space-y-6">
+                <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <Button variant="outline" size="sm" onClick={() => setSelectedCourseSlug(null)}>
+                      <ArrowLeft className="w-4 h-4 mr-1" />
+                      All Courses
+                    </Button>
                     <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                            <Icon className="w-6 h-6" />
+                      <div className="flex items-center gap-2">
+                        <Badge variant="primary">{activeCourse.badge}</Badge>
+                        <span className="text-xs font-medium text-slate-500">
+                          {activeCourse.completedLessons} / {activeCourse.totalLessons} Lessons Completed
+                        </span>
+                      </div>
+                      <h1 className="text-xl font-bold text-slate-900 mt-1">{activeCourse.title} Learning Path</h1>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 min-w-[200px]">
+                    <div className="flex-1 bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-blue-600 h-full transition-all duration-300 rounded-full"
+                        style={{ width: `${activeCourse.progressPercent}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-blue-600">{activeCourse.progressPercent}%</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  <div className="lg:col-span-4 space-y-4">
+                    <Card title="Course Modules" subtitle={`${activeCourse.totalModules} Modules • ${activeCourse.totalLessons} Lessons`}>
+                      <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+                        {(activeCourse.modules || []).map((mod) => (
+                          <div key={mod.id} className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
+                            <div className="p-3 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between">
+                              <span className="text-xs font-bold text-slate-900 line-clamp-1">{mod.title}</span>
+                              <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200 shrink-0">
+                                {(mod.lessons || []).filter((l) => l.isCompleted).length} / {(mod.lessons || []).length}
+                              </span>
+                            </div>
+
+                            <div className="divide-y divide-slate-100 bg-white">
+                              {(mod.lessons || []).map((lesson) => {
+                                const isActive = activeLesson?.id === lesson.id;
+                                return (
+                                  <button
+                                    key={lesson.id}
+                                    onClick={() => selectLesson(lesson)}
+                                    className={`w-full text-left px-3.5 py-2.5 flex items-center justify-between text-xs transition-colors ${
+                                      isActive
+                                        ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600'
+                                        : 'text-slate-700 hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                      {lesson.isCompleted ? (
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                      ) : (
+                                        <Circle className="w-4 h-4 text-slate-300 shrink-0" />
+                                      )}
+                                      <span className="truncate">{lesson.title}</span>
+                                    </div>
+                                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </div>
+
+                  <div className="lg:col-span-8 space-y-6">
+                    {activeLesson ? (
+                      <Card>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3">
+                          <div>
+                            <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Active Lesson</span>
+                            <h2 className="text-xl font-bold text-slate-900 mt-0.5">{activeLesson.title}</h2>
+                            <p className="text-xs text-slate-500 mt-0.5">{activeLesson.description}</p>
+                          </div>
+
+                          <Button
+                            variant={activeLesson.isCompleted ? 'secondary' : 'primary'}
+                            className={activeLesson.isCompleted ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : ''}
+                            size="sm"
+                            onClick={() => toggleLessonCompletion(activeLesson)}
+                          >
+                            {activeLesson.isCompleted ? (
+                              <>
+                                <Check className="w-4 h-4 mr-1.5" />
+                                Lesson Completed
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                                Mark as Complete
+                              </>
+                            )}
+                          </Button>
+                        </div>
+
+                        <div className="prose prose-slate max-w-none text-xs">
+                          {renderFormattedContent(activeLesson.content)}
+                        </div>
+                      </Card>
+                    ) : (
+                      <Card className="text-center py-12">
+                        <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="text-base font-semibold text-slate-700">Select a Lesson to Begin</p>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {courses.map((course) => {
+                  const isJs = course.slug === 'javascript';
+                  const Icon = isJs ? FileCode : FileCheck;
+
+                  return (
+                    <Card key={course.slug} className="flex flex-col justify-between hover:border-blue-300 transition-all">
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                              <Icon className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <Badge variant="primary">{course.badge}</Badge>
+                              <h3 className="text-lg font-bold text-slate-900 mt-0.5">{course.title}</h3>
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-600 leading-relaxed mb-4">{course.description}</p>
+
+                        <div className="grid grid-cols-2 gap-3 py-3 border-y border-slate-100 text-xs mb-4">
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Modules</span>
+                            <span className="font-bold text-slate-800 text-sm">{course.totalModules} Modules</span>
                           </div>
                           <div>
-                            <Badge variant="primary">{course.badge}</Badge>
-                            <h3 className="text-lg font-bold text-slate-900 mt-0.5">{course.title}</h3>
+                            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Lessons</span>
+                            <span className="font-bold text-slate-800 text-sm">{course.totalLessons} Lessons</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 mb-6">
+                          <div className="flex items-center justify-between text-xs font-medium">
+                            <span className="text-slate-500">
+                              Progress ({course.completedLessons} / {course.totalLessons} lessons)
+                            </span>
+                            <span className="font-bold text-blue-600">{course.progressPercent}%</span>
+                          </div>
+                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div
+                              className="bg-blue-600 h-full transition-all duration-300 rounded-full"
+                              style={{ width: `${course.progressPercent}%` }}
+                            />
                           </div>
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-600 leading-relaxed mb-4">{course.description}</p>
-
-                      <div className="grid grid-cols-2 gap-3 py-3 border-y border-slate-100 text-xs mb-4">
-                        <div>
-                          <span className="text-slate-400 block text-[10px] uppercase font-semibold">Modules</span>
-                          <span className="font-bold text-slate-800 text-sm">{course.totalModules} Modules</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block text-[10px] uppercase font-semibold">Lessons</span>
-                          <span className="font-bold text-slate-800 text-sm">{course.totalLessons} Lessons</span>
-                        </div>
+                      <div className="pt-2">
+                        <Button className="w-full" onClick={() => openCourse(course.slug)}>
+                          <Play className="w-4 h-4 mr-2" />
+                          {course.progressPercent > 0 ? 'Continue Learning' : 'Start Course'}
+                        </Button>
                       </div>
-
-                      <div className="space-y-1.5 mb-6">
-                        <div className="flex items-center justify-between text-xs font-medium">
-                          <span className="text-slate-500">
-                            Progress ({course.completedLessons} / {course.totalLessons} lessons)
-                          </span>
-                          <span className="font-bold text-blue-600">{course.progressPercent}%</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div
-                            className="bg-blue-600 h-full transition-all duration-300 rounded-full"
-                            style={{ width: `${course.progressPercent}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-2">
-                      <Button className="w-full" onClick={() => openCourse(course.slug)}>
-                        <Play className="w-4 h-4 mr-2" />
-                        {course.progressPercent > 0 ? 'Continue Learning' : 'Start Course'}
-                      </Button>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )
           )}
         </>
       )}
@@ -643,7 +949,6 @@ export const StudyResourcesPage: React.FC = () => {
           ------------------------------------------------------------- */}
       {activeTab === 'CODING_TASKS' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Task Selection Drawer */}
           <div className="lg:col-span-4 space-y-4">
             <Card
               title="40 Monthly Coding Tasks"
@@ -682,7 +987,6 @@ export const StudyResourcesPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Right Task Workspace */}
           <div className="lg:col-span-8 space-y-6">
             {selectedCodingTask ? (
               <Card>
@@ -844,6 +1148,219 @@ export const StudyResourcesPage: React.FC = () => {
               </table>
             </div>
           </Card>
+        </div>
+      )}
+
+      {/* -------------------------------------------------------------
+          TAB 4: ADMIN CO-INTERN STUDY RESOURCES MANAGEMENT
+          ------------------------------------------------------------- */}
+      {activeTab === 'CO_INTERN_ADMIN' && isAdminOrStaff && (
+        <div className="space-y-6">
+          <Card
+            title="CO-INTERN STUDY RESOURCES MANAGEMENT"
+            subtitle="Control open/closed status for the 12 Co-Intern materials and edit content using the Canva-Style Editor"
+          >
+            <div className="divide-y divide-slate-200">
+              {coInternTopics.map((topic) => {
+                const isOpen = topic.status === 'OPEN';
+                return (
+                  <div key={topic.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-bold text-indigo-600 uppercase">
+                          Topic #{topic.topicNumber} • Week {topic.week}
+                        </span>
+                        <Badge variant="neutral" className="font-mono">
+                          {topic.duration}
+                        </Badge>
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900">{topic.title}</h3>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0">
+                      {/* Open / Close Toggle Button */}
+                      <button
+                        onClick={() => toggleTopicStatus(topic.id)}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+                          isOpen
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100'
+                            : 'bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100'
+                        }`}
+                      >
+                        {isOpen ? (
+                          <>
+                            <Unlock className="w-3.5 h-3.5 text-emerald-600" />
+                            Status: OPEN
+                          </>
+                        ) : (
+                          <>
+                            <Lock className="w-3.5 h-3.5 text-rose-600" />
+                            Status: CLOSED
+                          </>
+                        )}
+                      </button>
+
+                      {/* Open Canva Style Editor */}
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200"
+                        onClick={() => openCanvaEditor(topic)}
+                      >
+                        <Edit3 className="w-3.5 h-3.5 mr-1.5" />
+                        Edit Material (Canva Editor)
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* -------------------------------------------------------------
+          CANVA-STYLE ADVANCED MATERIAL EDITOR MODAL
+          ------------------------------------------------------------- */}
+      {editingTopic && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col border border-slate-200 animate-in fade-in zoom-in duration-200">
+            {/* Modal Header */}
+            <div className="p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center font-bold border border-indigo-500/40">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono text-indigo-300 uppercase font-bold tracking-wider">
+                    Canva-Style Material Editor • Topic #{editingTopic.topicNumber}
+                  </span>
+                  <h2 className="text-lg font-bold text-white leading-tight">
+                    Editing: {editingTopic.title}
+                  </h2>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setEditingTopic(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Topic Details Inputs */}
+            <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Topic Title</label>
+                <input
+                  type="text"
+                  value={editorTitle}
+                  onChange={(e) => setEditorTitle(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Allocated Duration</label>
+                <input
+                  type="text"
+                  value={editorDuration}
+                  onChange={(e) => setEditorDuration(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Quick Toolbar Insert Controls */}
+            <div className="px-6 py-2 bg-indigo-50/60 border-b border-indigo-100 flex items-center gap-2 overflow-x-auto text-xs">
+              <span className="text-[11px] font-bold text-indigo-900 shrink-0 mr-1 flex items-center gap-1">
+                <Layout className="w-3.5 h-3.5" />
+                Canva Tools:
+              </span>
+              <button
+                type="button"
+                onClick={() => insertTemplateToEditor('ROADMAP')}
+                className="px-2.5 py-1 bg-white border border-indigo-200 text-indigo-700 rounded-md hover:bg-indigo-100 font-semibold text-[11px] shrink-0"
+              >
+                + Insert Roadmap Template
+              </button>
+              <button
+                type="button"
+                onClick={() => insertTemplateToEditor('CODE')}
+                className="px-2.5 py-1 bg-white border border-indigo-200 text-indigo-700 rounded-md hover:bg-indigo-100 font-semibold text-[11px] shrink-0"
+              >
+                + Insert Code Block
+              </button>
+              <button
+                type="button"
+                onClick={() => insertTemplateToEditor('BANNER')}
+                className="px-2.5 py-1 bg-white border border-indigo-200 text-indigo-700 rounded-md hover:bg-indigo-100 font-semibold text-[11px] shrink-0"
+              >
+                + Insert Notice Banner
+              </button>
+            </div>
+
+            {/* Split Screen Workspace: Editor Left, Live Preview Right */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200 overflow-hidden">
+              {/* Left Column: Markdown Code Editor */}
+              <div className="p-4 flex flex-col h-full bg-white">
+                <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
+                  <span>Markdown & Structure Editor</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Supports markdown, headings & code snippets</span>
+                </label>
+                <textarea
+                  rows={16}
+                  value={editorContent}
+                  onChange={(e) => setEditorContent(e.target.value)}
+                  className="w-full flex-1 p-4 font-mono text-xs bg-slate-900 text-indigo-200 rounded-xl border border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed resize-none overflow-y-auto"
+                />
+              </div>
+
+              {/* Right Column: Live Canva Preview Canvas */}
+              <div className="p-4 flex flex-col h-full bg-slate-50 overflow-y-auto">
+                <div className="flex items-center justify-between mb-3 border-b border-slate-200 pb-2">
+                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-indigo-600" />
+                    Live Canvas Preview
+                  </span>
+                  <Badge variant="primary" className="text-[10px] uppercase">
+                    Interactive Render
+                  </Badge>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex-1 text-xs prose max-w-none">
+                  <div className="mb-4 pb-3 border-b border-slate-100">
+                    <span className="text-[10px] font-bold text-indigo-600 uppercase font-mono">
+                      Week {editingTopic.week} • Topic #{editingTopic.topicNumber}
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900 mt-0.5">{editorTitle || editingTopic.title}</h3>
+                    <Badge variant="neutral" className="mt-1 font-mono text-[10px]">
+                      Duration: {editorDuration || editingTopic.duration}
+                    </Badge>
+                  </div>
+
+                  {renderFormattedContent(editorContent || 'Type content in the editor to preview styling...')}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 bg-slate-100 border-t border-slate-200 flex items-center justify-end gap-3">
+              <Button variant="outline" size="sm" onClick={() => setEditingTopic(null)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                variant="primary"
+                className="bg-indigo-600 hover:bg-indigo-700"
+                loading={savingEditor}
+                onClick={handleSaveTopicContent}
+              >
+                Save & Publish Material
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
