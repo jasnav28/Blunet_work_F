@@ -201,12 +201,14 @@ export const TasksPage: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Submit Work Button for Employees & Co-Interns */}
-          <Button
-            onClick={() => handleOpenSubmitModal()}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold border-0 shadow-xs"
-          >
-            <Send className="w-4 h-4 mr-1.5" /> Submit Work / Send for Review
-          </Button>
+          {!canAssignTask && (
+            <Button
+              onClick={() => handleOpenSubmitModal()}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold border-0 shadow-xs"
+            >
+              <Send className="w-4 h-4 mr-1.5" /> Submit Work / Send for Review
+            </Button>
+          )}
 
           {/* Assign Task Button for Admin */}
           {canAssignTask && (
@@ -403,13 +405,13 @@ export const TasksPage: React.FC = () => {
                       )}
 
                       {/* Employee / Co-Intern Actions */}
-                      {task.status === 'TODO' && (
+                      {!canAssignTask && task.status === 'TODO' && (
                         <Button size="sm" onClick={() => handleStatusChange(task.id, 'IN_PROGRESS')}>
                           Start Task
                         </Button>
                       )}
 
-                      {(task.status === 'TODO' || task.status === 'IN_PROGRESS') && (
+                      {!canAssignTask && (task.status === 'TODO' || task.status === 'IN_PROGRESS') && (
                         <Button
                           size="sm"
                           onClick={() => handleOpenSubmitModal(task)}
