@@ -82,6 +82,26 @@ export const TasksPage: React.FC = () => {
     fetchEmployees();
   }, [user]);
 
+  const extractErrorMessage = (err: any, fallback: string): string => {
+    const serverMsg = err.response?.data?.error?.message || err.response?.data?.message || err.message;
+    if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+      return 'Connection timed out. Please check your internet connection and try again.';
+    }
+    if (!err.response) {
+      return 'Unable to connect to the server. Please check your internet connection and try again.';
+    }
+    if (err.response?.status === 401) {
+      return 'Your session has expired. Please log in again.';
+    }
+    if (err.response?.status === 403) {
+      return serverMsg || 'You do not have permission to perform this task action.';
+    }
+    if (err.response?.status === 404) {
+      return serverMsg || 'The requested task was not found.';
+    }
+    return serverMsg || fallback;
+  };
+
   const handleStatusChange = async (taskId: string, newStatus: string) => {
     try {
       setStatusMessage(null);
@@ -92,8 +112,8 @@ export const TasksPage: React.FC = () => {
       });
       fetchTasks();
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Failed to update task status.';
-      setStatusMessage({ type: 'error', text: msg });
+      const text = extractErrorMessage(err, 'Failed to update task status.');
+      setStatusMessage({ type: 'error', text });
     }
   };
 
@@ -113,8 +133,8 @@ export const TasksPage: React.FC = () => {
       setStatusMessage({ type: 'success', text: 'New task assigned successfully!' });
       fetchTasks();
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Failed to assign task.';
-      setStatusMessage({ type: 'error', text: msg });
+      const text = extractErrorMessage(err, 'Failed to assign task.');
+      setStatusMessage({ type: 'error', text });
     }
   };
 
@@ -155,8 +175,8 @@ export const TasksPage: React.FC = () => {
         fetchTasks();
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Failed to submit task work.';
-      setStatusMessage({ type: 'error', text: msg });
+      const text = extractErrorMessage(err, 'Failed to submit task work.');
+      setStatusMessage({ type: 'error', text });
     } finally {
       setSubmittingWork(false);
     }
