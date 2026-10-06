@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, CheckSquare, FolderLock, AlertCircle, PlayCircle, CheckCircle2, User } from 'lucide-react';
+import { Clock, CheckSquare, FolderLock, AlertCircle, PlayCircle, CheckCircle2, User, Eye, Calendar, UserCheck } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
+import { Modal } from '../components/common/Modal';
 import { Task } from '../types';
 
 export const EmployeeDashboard: React.FC = () => {
@@ -14,6 +15,7 @@ export const EmployeeDashboard: React.FC = () => {
   const [session, setSession] = useState<{ activeFormatted: string; activeSeconds?: number; loginTime: string } | null>(null);
   const [liveSeconds, setLiveSeconds] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
 
   const fetchData = async () => {
     try {
@@ -148,9 +150,10 @@ export const EmployeeDashboard: React.FC = () => {
                 {tasks.slice(0, 5).map((task) => (
                   <div
                     key={task.id}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    onClick={() => setDetailTask(task)}
+                    className="p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group"
                   >
-                    <div className="space-y-1">
+                    <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
                         <Badge
                           variant={
@@ -175,18 +178,36 @@ export const EmployeeDashboard: React.FC = () => {
                           {task.status.replace('_', ' ')}
                         </Badge>
                       </div>
-                      <h4 className="font-semibold text-slate-900 text-sm">{task.title}</h4>
+                      <h4 className="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors flex items-center justify-between">
+                        <span>{task.title}</span>
+                        <span className="text-[11px] font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 flex items-center gap-1 shrink-0">
+                          <Eye className="w-3 h-3" /> Full View
+                        </span>
+                      </h4>
                       <p className="text-xs text-slate-500 line-clamp-1">{task.description}</p>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
                       {task.status === 'TODO' && (
-                        <Button size="sm" onClick={() => handleStatusChange(task.id, 'IN_PROGRESS')}>
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(task.id, 'IN_PROGRESS');
+                          }}
+                        >
                           Start Task
                         </Button>
                       )}
                       {task.status === 'IN_PROGRESS' && (
-                        <Button size="sm" variant="secondary" onClick={() => handleStatusChange(task.id, 'COMPLETED')}>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(task.id, 'COMPLETED');
+                          }}
+                        >
                           Mark Complete
                         </Button>
                       )}
@@ -234,6 +255,105 @@ export const EmployeeDashboard: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Task Details Popup Modal */}
+      {detailTask && (
+        <Modal
+          isOpen={!!detailTask}
+          onClose={() => setDetailTask(null)}
+          title="Task Details"
+          maxWidth="2xl"
+        >
+          <div className="space-y-5">
+            <div className="border-b border-slate-100 pb-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={
+                      detailTask.priority === 'URGENT' || detailTask.priority === 'HIGH'
+                        ? 'danger'
+                        : detailTask.priority === 'MEDIUM'
+                        ? 'warning'
+                        : 'neutral'
+                    }
+                  >
+                    {detailTask.priority} Priority
+                  </Badge>
+                  <Badge
+                    variant={
+                      detailTask.status === 'COMPLETED'
+                        ? 'success'
+                        : detailTask.status === 'IN_PROGRESS'
+                        ? 'primary'
+                        : 'neutral'
+                    }
+                  >
+                    {detailTask.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+
+                {detailTask.dueDate && (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Due Date: <strong>{new Date(detailTask.dueDate).toLocaleDateString()}</strong></span>
+                  </div>
+                )}
+              </div>
+
+              <h2 className="text-xl font-bold text-slate-900 leading-snug">{detailTask.title}</h2>
+
+              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
+                {detailTask.assignedBy && (
+                  <div className="flex items-center gap-1">
+                    <UserCheck className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Assigned By: <strong className="text-slate-700">{detailTask.assignedBy.name}</strong></span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Full Task Description & Guidelines
+              </h4>
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto shadow-inner">
+                {detailTask.description}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+              {detailTask.status === 'TODO' && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const id = detailTask.id;
+                    setDetailTask(null);
+                    handleStatusChange(id, 'IN_PROGRESS');
+                  }}
+                >
+                  Start Task
+                </Button>
+              )}
+              {detailTask.status === 'IN_PROGRESS' && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const id = detailTask.id;
+                    setDetailTask(null);
+                    handleStatusChange(id, 'COMPLETED');
+                  }}
+                >
+                  Mark Complete
+                </Button>
+              )}
+              <Button variant="secondary" onClick={() => setDetailTask(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

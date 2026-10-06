@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   AlertCircle,
   FileText,
+  Eye,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -42,6 +43,9 @@ export const TasksPage: React.FC = () => {
   const [submissionDetails, setSubmissionDetails] = useState('');
   const [submissionLinks, setSubmissionLinks] = useState('');
   const [submittingWork, setSubmittingWork] = useState(false);
+
+  // Task Details Modal State (Click to view full description)
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
 
   // Comment Modal State
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -301,7 +305,8 @@ export const TasksPage: React.FC = () => {
             return (
               <Card
                 key={task.id}
-                className={`flex flex-col justify-between transition-all ${
+                onClick={() => setDetailTask(task)}
+                className={`flex flex-col justify-between transition-all cursor-pointer hover:shadow-md hover:border-blue-300 group ${
                   isSubmitted ? 'border-2 border-amber-400 bg-amber-50/10' : ''
                 }`}
               >
@@ -333,10 +338,26 @@ export const TasksPage: React.FC = () => {
                         {task.status === 'SUBMITTED' ? 'SUBMITTED FOR REVIEW' : task.status.replace('_', ' ')}
                       </Badge>
                     </div>
+
+                    <span className="text-[11px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0 border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      <Eye className="w-3 h-3" /> Full View
+                    </span>
                   </div>
 
-                  <h3 className="text-base font-semibold text-slate-900 mb-1">{task.title}</h3>
-                  <p className="text-xs text-slate-600 mb-4 line-clamp-3 leading-relaxed">{task.description}</p>
+                  <h3 className="text-base font-semibold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">
+                    {task.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 mb-2 line-clamp-3 leading-relaxed">{task.description}</p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDetailTask(task);
+                    }}
+                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 mb-4 inline-flex items-center gap-1 hover:underline"
+                  >
+                    <Eye className="w-3 h-3" /> Click to view full description & details &rarr;
+                  </button>
 
                   {/* Submission Details Box for Submitted Tasks */}
                   {isSubmitted && submissionComment && (
@@ -376,7 +397,11 @@ export const TasksPage: React.FC = () => {
 
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
                     <button
-                      onClick={() => setSelectedTask(task)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTask(task);
+                      }}
                       className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
@@ -389,14 +414,20 @@ export const TasksPage: React.FC = () => {
                         <>
                           <Button
                             size="sm"
-                            onClick={() => handleStatusChange(task.id, 'IN_PROGRESS')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(task.id, 'IN_PROGRESS');
+                            }}
                             className="bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300"
                           >
                             <Clock className="w-3.5 h-3.5 mr-1" /> Request Revision
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handleStatusChange(task.id, 'COMPLETED')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(task.id, 'COMPLETED');
+                            }}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Review & Complete
@@ -406,7 +437,13 @@ export const TasksPage: React.FC = () => {
 
                       {/* Employee / Co-Intern Actions */}
                       {!canAssignTask && task.status === 'TODO' && (
-                        <Button size="sm" onClick={() => handleStatusChange(task.id, 'IN_PROGRESS')}>
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(task.id, 'IN_PROGRESS');
+                          }}
+                        >
                           Start Task
                         </Button>
                       )}
@@ -414,7 +451,10 @@ export const TasksPage: React.FC = () => {
                       {!canAssignTask && (task.status === 'TODO' || task.status === 'IN_PROGRESS') && (
                         <Button
                           size="sm"
-                          onClick={() => handleOpenSubmitModal(task)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenSubmitModal(task);
+                          }}
                           className="bg-emerald-600 hover:bg-emerald-700 text-white"
                         >
                           <Send className="w-3.5 h-3.5 mr-1" /> Submit Work
@@ -425,7 +465,10 @@ export const TasksPage: React.FC = () => {
                         <Button
                           size="sm"
                           variant="danger"
-                          onClick={() => handleDeleteTask(task.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTask(task.id);
+                          }}
                           icon={<Trash2 className="w-3.5 h-3.5" />}
                         >
                           Remove
@@ -652,6 +695,180 @@ export const TasksPage: React.FC = () => {
               />
               <Button type="submit">Post</Button>
             </form>
+          </div>
+        </Modal>
+      )}
+
+      {/* Task Full Details Popup Modal */}
+      {detailTask && (
+        <Modal
+          isOpen={!!detailTask}
+          onClose={() => setDetailTask(null)}
+          title="Task Details"
+          maxWidth="2xl"
+        >
+          <div className="space-y-5">
+            {/* Header / Badges / Dates */}
+            <div className="border-b border-slate-100 pb-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={
+                      detailTask.priority === 'URGENT' || detailTask.priority === 'HIGH'
+                        ? 'danger'
+                        : detailTask.priority === 'MEDIUM'
+                        ? 'warning'
+                        : 'neutral'
+                    }
+                  >
+                    {detailTask.priority} Priority
+                  </Badge>
+                  <Badge
+                    variant={
+                      detailTask.status === 'COMPLETED'
+                        ? 'success'
+                        : detailTask.status === 'SUBMITTED'
+                        ? 'warning'
+                        : detailTask.status === 'IN_PROGRESS'
+                        ? 'primary'
+                        : 'neutral'
+                    }
+                  >
+                    {detailTask.status === 'SUBMITTED' ? 'SUBMITTED FOR REVIEW' : detailTask.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+
+                {detailTask.dueDate && (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Due Date: <strong>{new Date(detailTask.dueDate).toLocaleDateString()}</strong></span>
+                  </div>
+                )}
+              </div>
+
+              <h2 className="text-xl font-bold text-slate-900 leading-snug">{detailTask.title}</h2>
+
+              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
+                <div className="flex items-center gap-1">
+                  <UserCheck className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Assigned By: <strong className="text-slate-700">{detailTask.assignedBy?.name || 'System Admin'}</strong></span>
+                </div>
+                {detailTask.assignedTo && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-slate-400">Assigned To:</span>
+                    <strong className="text-slate-700">
+                      {detailTask.assignedTo.name} {detailTask.assignedTo.designation ? `(${detailTask.assignedTo.designation})` : ''}
+                    </strong>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Full Task Description */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Full Task Description & Instructions
+              </h4>
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto shadow-inner">
+                {detailTask.description}
+              </div>
+            </div>
+
+            {/* Submission details if task is SUBMITTED */}
+            {detailTask.status === 'SUBMITTED' && (() => {
+              const subComment = detailTask.comments
+                ?.slice()
+                .reverse()
+                .find((c) => c.content.includes('📌 WORK SUBMISSION FOR REVIEW:'));
+              if (!subComment) return null;
+              return (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-2">
+                  <div className="font-bold text-amber-900 flex items-center gap-1.5 text-sm">
+                    <FileText className="w-4 h-4 text-amber-700" />
+                    Work Submission Details (by {subComment.author.name})
+                  </div>
+                  <div className="text-slate-800 whitespace-pre-wrap font-sans text-xs bg-white p-3 rounded-lg border border-amber-200 leading-relaxed">
+                    {subComment.content.replace('📌 WORK SUBMISSION FOR REVIEW:\n\n', '')}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Modal Actions */}
+            <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const taskToView = detailTask;
+                  setDetailTask(null);
+                  setSelectedTask(taskToView);
+                }}
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>View Comments & Activity ({detailTask.comments?.length || 0})</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                {!canAssignTask && detailTask.status === 'TODO' && (
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      const id = detailTask.id;
+                      setDetailTask(null);
+                      handleStatusChange(id, 'IN_PROGRESS');
+                    }}
+                  >
+                    Start Task
+                  </Button>
+                )}
+
+                {!canAssignTask && (detailTask.status === 'TODO' || detailTask.status === 'IN_PROGRESS') && (
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      const taskToSubmit = detailTask;
+                      setDetailTask(null);
+                      handleOpenSubmitModal(taskToSubmit);
+                    }}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                  >
+                    <Send className="w-3.5 h-3.5 mr-1" /> Submit Work
+                  </Button>
+                )}
+
+                {detailTask.status === 'SUBMITTED' && canAssignTask && (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const id = detailTask.id;
+                        setDetailTask(null);
+                        handleStatusChange(id, 'IN_PROGRESS');
+                      }}
+                      className="bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300"
+                    >
+                      <Clock className="w-3.5 h-3.5 mr-1" /> Request Revision
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const id = detailTask.id;
+                        setDetailTask(null);
+                        handleStatusChange(id, 'COMPLETED');
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Review & Complete
+                    </Button>
+                  </>
+                )}
+
+                <Button variant="secondary" onClick={() => setDetailTask(null)}>
+                  Close
+                </Button>
+              </div>
+            </div>
           </div>
         </Modal>
       )}
