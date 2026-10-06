@@ -6,11 +6,12 @@ interface CardProps {
   title?: string;
   subtitle?: string;
   action?: React.ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-export const Card: React.FC<CardProps> = ({ children, className = '', title, subtitle, action }) => {
+export const Card: React.FC<CardProps> = ({ children, className = '', title, subtitle, action, onClick }) => {
   return (
-    <div className={`bg-white rounded-xl border border-slate-200 shadow-sm p-5 ${className}`}>
+    <div onClick={onClick} className={`bg-white rounded-xl border border-slate-200 shadow-sm p-5 ${className}`}>
       {(title || action) && (
         <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
           <div>
