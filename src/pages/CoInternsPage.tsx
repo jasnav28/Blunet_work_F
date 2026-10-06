@@ -72,6 +72,10 @@ export const CoInternsPage: React.FC = () => {
   const [taskDueDate, setTaskDueDate] = useState('');
   const [taskSubmitting, setTaskSubmitting] = useState(false);
 
+  // Bulk Selection & Give Task State
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkTaskModalOpen, setBulkTaskModalOpen] = useState(false);
+
   // Status Message
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -98,7 +102,7 @@ export const CoInternsPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to load co-interns:', err);
-    } fontally: {
+    } finally {
       setLoading(false);
     }
   };
@@ -205,6 +209,95 @@ export const CoInternsPage: React.FC = () => {
       intern.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+    );
+  };
+
+  const isAllSelected =
+    filteredCoInterns.length > 0 &&
+    filteredCoInterns.every((intern) => selectedIds.includes(intern.id));
+
+  const handleSelectAllToggle = () => {
+    if (isAllSelected) {
+      const filteredSet = new Set(filteredCoInterns.map((i) => i.id));
+      setSelectedIds((prev) => prev.filter((id) => !filteredSet.has(id)));
+    } else {
+      const filteredIds = filteredCoInterns.map((i) => i.id);
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...filteredIds])));
+    }
+  };
+
+  const handleOpenGiveTaskModal = () => {
+    if (selectedIds.length === 0 && filteredCoInterns.length > 0) {
+      setSelectedIds(filteredCoInterns.map((i) => i.id));
+    }
+    setTaskTitle('');
+    setTaskDescription('');
+    setTaskPriority('MEDIUM');
+    setTaskDueDate('');
+    setBulkTaskModalOpen(true);
+  };
+
+  const handleBulkAllotTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedIds.length === 0) return;
+    setTaskSubmitting(true);
+    setStatusMessage(null);
+
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const internId of selectedIds) {
+        try {
+          const payload = {
+            title: taskTitle,
+            description: taskDescription,
+            priority: taskPriority,
+            assignedToId: internId,
+            dueDate: taskDueDate || undefined,
+          };
+          const res = await api.post('/tasks', payload);
+          if (res.data.success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch {
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        setStatusMessage({
+          type: 'success',
+          text: `Task "${taskTitle}" successfully allotted to ${successCount} co-intern(s)${
+            failCount > 0 ? ` (${failCount} failed)` : ''
+          }!`,
+        });
+        setBulkTaskModalOpen(false);
+        setSelectedIds([]);
+        setTaskTitle('');
+        setTaskDescription('');
+        setTaskPriority('MEDIUM');
+        setTaskDueDate('');
+        fetchCoInterns();
+      } else {
+        setStatusMessage({
+          type: 'error',
+          text: 'Failed to allot task to selected co-interns.',
+        });
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Failed to allot tasks.';
+      setStatusMessage({ type: 'error', text: msg });
+    } finally {
+      setTaskSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -219,9 +312,20 @@ export const CoInternsPage: React.FC = () => {
           </p>
         </div>
 
-        <Button onClick={handleOpenCreateModal} className="bg-white text-emerald-800 hover:bg-emerald-50 shrink-0 font-bold border-0 shadow-sm">
-          <Plus className="w-4 h-4 mr-2" /> Create Co-Intern Profile
-        </Button>
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <Button
+            onClick={handleOpenGiveTaskModal}
+            className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold border-0 shadow-sm"
+          >
+            <CheckSquare className="w-4 h-4 mr-2" /> Give Task {selectedIds.length > 0 ? `(${selectedIds.length})` : ''}
+          </Button>
+          <Button
+            onClick={handleOpenCreateModal}
+            className="bg-white text-emerald-800 hover:bg-emerald-50 font-bold border-0 shadow-sm"
+          >
+            <Plus className="w-4 h-4 mr-2" /> Create Co-Intern Profile
+          </Button>
+        </div>
       </div>
 
       {statusMessage && (
@@ -244,19 +348,40 @@ export const CoInternsPage: React.FC = () => {
       {/* Filter and Search Bar */}
       <Card className="p-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by name, ID (e.g. CO-IN00426), email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 text-sm"
-            />
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by name, ID (e.g. CO-IN00426), email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 text-sm"
+              />
+            </div>
+
+            {filteredCoInterns.length > 0 && (
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3.5 py-2.5 rounded-xl transition-colors shrink-0 border border-slate-200">
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  onChange={handleSelectAllToggle}
+                  className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                />
+                <span>Select All ({filteredCoInterns.length})</span>
+              </label>
+            )}
           </div>
 
-          <div className="text-xs text-slate-500 font-medium">
-            Total Co-Intern Profiles: <span className="font-bold text-slate-900">{coInterns.length}</span>
+          <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+            {selectedIds.length > 0 && (
+              <span className="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-lg border border-emerald-200">
+                {selectedIds.length} Selected
+              </span>
+            )}
+            <span>
+              Total Co-Intern Profiles: <span className="font-bold text-slate-900">{coInterns.length}</span>
+            </span>
           </div>
         </div>
       </Card>
@@ -272,61 +397,194 @@ export const CoInternsPage: React.FC = () => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCoInterns.map((intern) => (
-            <Card key={intern.id} className="hover:border-emerald-300 transition-all flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-sm">
-                      {intern.name.charAt(0)}
+          {filteredCoInterns.map((intern) => {
+            const isSelected = selectedIds.includes(intern.id);
+            return (
+              <Card
+                key={intern.id}
+                className={`hover:border-emerald-300 transition-all flex flex-col justify-between space-y-4 ${
+                  isSelected ? 'border-2 border-emerald-500 bg-emerald-50/20' : ''
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleSelect(intern.id)}
+                        className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0"
+                      />
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-sm">
+                        {intern.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-base">{intern.name}</h3>
+                        <span className="font-mono text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          {intern.employeeId}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base">{intern.name}</h3>
-                      <span className="font-mono text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        {intern.employeeId}
+                    <Badge variant={intern.isActive ? 'success' : 'neutral'}>
+                      {intern.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs text-slate-600 pt-1">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>
+                        {intern.designation} • {intern.department?.name || 'General'}
                       </span>
                     </div>
-                  </div>
-                  <Badge variant={intern.isActive ? 'success' : 'neutral'}>
-                    {intern.isActive ? 'Active' : 'Inactive'}
-                  </Badge>
-                </div>
-
-                <div className="space-y-1.5 text-xs text-slate-600 pt-1">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>{intern.designation} • {intern.department?.name || 'General'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="truncate">{intern.email}</span>
-                  </div>
-                  {intern.phone && (
                     <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{intern.phone}</span>
+                      <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="truncate">{intern.email}</span>
                     </div>
-                  )}
-                  <div className="flex items-center gap-2 text-slate-500 pt-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>Joined: {new Date(intern.joiningDate).toLocaleDateString()}</span>
+                    {intern.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{intern.phone}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-slate-500 pt-1">
+                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>Joined: {new Date(intern.joiningDate).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <div className="text-[11px] text-slate-500">
-                  Tasks: <span className="font-bold text-slate-800">{intern.taskStats?.completed || 0}</span> / {intern.taskStats?.total || 0} Done
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="text-[11px] text-slate-500">
+                    Tasks: <span className="font-bold text-slate-800">{intern.taskStats?.completed || 0}</span> /{' '}
+                    {intern.taskStats?.total || 0} Done
+                  </div>
+
+                  <Button
+                    size="sm"
+                    onClick={() => handleOpenTaskModal(intern)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5 mr-1" /> Allot Task
+                  </Button>
                 </div>
-
-                <Button size="sm" onClick={() => handleOpenTaskModal(intern)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                  <PlusCircle className="w-3.5 h-3.5 mr-1" /> Allot Task
-                </Button>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
+
+      {/* Give Task (Bulk Allot) Modal */}
+      <Modal
+        isOpen={bulkTaskModalOpen}
+        onClose={() => setBulkTaskModalOpen(false)}
+        title={`Give Task to Co-Interns (${selectedIds.length} Selected)`}
+      >
+        <form onSubmit={handleBulkAllotTask} className="space-y-4">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-2">
+            <div className="flex items-center justify-between font-semibold">
+              <span>Allotting task to {selectedIds.length} Co-Intern(s):</span>
+              <button
+                type="button"
+                onClick={handleSelectAllToggle}
+                className="text-xs text-amber-700 hover:underline font-bold"
+              >
+                {isAllSelected ? 'Deselect All' : `Select All (${coInterns.length})`}
+              </button>
+            </div>
+            {selectedIds.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pt-1">
+                {coInterns
+                  .filter((i) => selectedIds.includes(i.id))
+                  .map((i) => (
+                    <span
+                      key={i.id}
+                      className="inline-flex items-center gap-1 bg-white text-slate-800 font-mono text-[11px] px-2 py-0.5 rounded border border-amber-300 shadow-sm"
+                    >
+                      <span className="font-sans font-medium">{i.name}</span>
+                      <span className="text-emerald-700">({i.employeeId})</span>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSelect(i.id)}
+                        className="hover:text-red-600 font-bold ml-1 text-xs"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              Task Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Build React Component or Weekly Sprint Task"
+              value={taskTitle}
+              onChange={(e) => setTaskTitle(e.target.value)}
+              required
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              Task Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Provide clear task instructions for selected co-interns..."
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
+              required
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 resize-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Priority</label>
+              <select
+                value={taskPriority}
+                onChange={(e) => setTaskPriority(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="URGENT">Urgent</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Due Date</label>
+              <input
+                type="date"
+                value={taskDueDate}
+                onChange={(e) => setTaskDueDate(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 bg-white"
+              />
+            </div>
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+            <Button type="button" variant="outline" onClick={() => setBulkTaskModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={taskSubmitting || selectedIds.length === 0}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+            >
+              {taskSubmitting
+                ? 'Allotting Tasks...'
+                : `Give Task to ${selectedIds.length} Co-Intern${selectedIds.length === 1 ? '' : 's'}`}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Create Co-Intern Modal */}
       <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Create New Co-Intern Profile">
@@ -444,7 +702,7 @@ export const CoInternsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Allot Task Modal */}
+      {/* Single Allot Task Modal */}
       <Modal isOpen={taskModalOpen} onClose={() => setTaskModalOpen(false)} title={`Allot Task to ${selectedCoIntern?.name}`}>
         <form onSubmit={handleAllotTask} className="space-y-4">
           <div className="text-xs text-slate-500">
