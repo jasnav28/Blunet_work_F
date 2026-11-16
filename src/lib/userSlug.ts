@@ -1,3 +1,7 @@
+import { isMarketingHead, isMarketingIndividual } from './roleUtils';
+
+export { isMarketingHead, isMarketingIndividual };
+
 export const getUserSlug = (user: any): string => {
   if (!user) return 'user';
   
@@ -8,11 +12,22 @@ export const getUserSlug = (user: any): string => {
 
   let roleSuffix = 'emp';
   const role = (user.role || '').toUpperCase();
-  if (role === 'MARKETING_HEAD') roleSuffix = 'marketing';
-  else if (role === 'ADMIN') roleSuffix = 'admin';
-  else if (role === 'FOUNDER') roleSuffix = 'founder';
-  else if (role === 'EMPLOYEE') roleSuffix = 'emp';
-  else roleSuffix = role ? role.toLowerCase() : 'emp';
+  
+  if (role === 'MARKETING_HEAD') {
+    if (isMarketingHead(user)) {
+      roleSuffix = 'marketing-head';
+    } else {
+      roleSuffix = 'marketing';
+    }
+  } else if (role === 'ADMIN') {
+    roleSuffix = 'admin';
+  } else if (role === 'FOUNDER') {
+    roleSuffix = 'founder';
+  } else if (isMarketingIndividual(user)) {
+    roleSuffix = 'marketing';
+  } else {
+    roleSuffix = 'emp';
+  }
 
   if (namePart === 'systemadministrator' || namePart === 'admin') {
     return 'admin';

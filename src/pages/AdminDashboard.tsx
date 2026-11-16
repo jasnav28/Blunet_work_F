@@ -28,6 +28,7 @@ import {
   Cell,
 } from 'recharts';
 import { api } from '../lib/api';
+import { isMarketingHead } from '../lib/userSlug';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
@@ -351,8 +352,8 @@ export const AdminDashboard: React.FC = () => {
                     <div className="text-[11px] text-slate-500">{emp.email}</div>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={emp.role === 'ADMIN' ? 'danger' : emp.role === 'MARKETING_HEAD' ? 'warning' : 'info'}>
-                      {emp.role.replace('_', ' ')}
+                    <Badge variant={emp.role === 'ADMIN' ? 'danger' : isMarketingHead(emp) ? 'warning' : 'info'}>
+                      {emp.designation || (isMarketingHead(emp) ? 'Marketing Head' : emp.role.replace('_', ' '))}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{emp.department?.name || 'General'}</td>

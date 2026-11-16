@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppLayout } from './components/layout/AppLayout';
-import { getUserSlug } from './lib/userSlug';
+import { getUserSlug, isMarketingHead, isMarketingIndividual } from './lib/userSlug';
 
 import { LoginPage } from './pages/LoginPage';
 import { EmployeeDashboard } from './pages/EmployeeDashboard';
@@ -63,8 +63,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
   if (user && allowedRoles && !allowedRoles.includes(user.role) && !isAnviRoute) {
     const userSlug = getUserSlug(user);
     if (user.role === 'ADMIN') return <Navigate to={`/${userSlug}/admin`} replace />;
-    if (user.role === 'MARKETING_HEAD') return <Navigate to={`/${userSlug}/marketing`} replace />;
     if (user.role === 'FOUNDER') return <Navigate to={`/${userSlug}/founder`} replace />;
+    if (isMarketingHead(user)) return <Navigate to={`/${userSlug}/marketing`} replace />;
+    if (isMarketingIndividual(user)) return <Navigate to={`/${userSlug}/leads`} replace />;
     return <Navigate to={`/${userSlug}/dashboard`} replace />;
   }
 
@@ -79,8 +80,9 @@ const DefaultRedirect: React.FC = () => {
 
   const userSlug = getUserSlug(user);
   if (user.role === 'ADMIN') return <Navigate to={`/${userSlug}/admin`} replace />;
-  if (user.role === 'MARKETING_HEAD') return <Navigate to={`/${userSlug}/marketing`} replace />;
   if (user.role === 'FOUNDER') return <Navigate to={`/${userSlug}/founder`} replace />;
+  if (isMarketingHead(user)) return <Navigate to={`/${userSlug}/marketing`} replace />;
+  if (isMarketingIndividual(user)) return <Navigate to={`/${userSlug}/leads`} replace />;
   return <Navigate to={`/${userSlug}/dashboard`} replace />;
 };
 
@@ -113,8 +115,8 @@ export const App: React.FC = () => {
             <Route path="/marketing" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN', 'FOUNDER']}><MarketingDashboard /></ProtectedRoute>} />
             <Route path="/:userSlug/marketing" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN', 'FOUNDER']}><MarketingDashboard /></ProtectedRoute>} />
             
-            <Route path="/leads" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN']}><MarketingDashboard /></ProtectedRoute>} />
-            <Route path="/:userSlug/leads" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN']}><MarketingDashboard /></ProtectedRoute>} />
+            <Route path="/leads" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN', 'EMPLOYEE']}><MarketingDashboard /></ProtectedRoute>} />
+            <Route path="/:userSlug/leads" element={<ProtectedRoute allowedRoles={['MARKETING_HEAD', 'ADMIN', 'EMPLOYEE']}><MarketingDashboard /></ProtectedRoute>} />
 
             {/* Admin Dedicated Routes */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />

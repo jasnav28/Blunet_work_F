@@ -22,7 +22,7 @@ import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { useHeartbeat } from '../../hooks/useHeartbeat';
 import { Badge } from '../common/Badge';
-import { getUserSlug } from '../../lib/userSlug';
+import { getUserSlug, isMarketingHead, isMarketingIndividual } from '../../lib/userSlug';
 import { NetworkStatusBanner } from '../common/NetworkStatusBanner';
 import { TaskNotificationBanner } from '../common/TaskNotificationBanner';
 
@@ -45,6 +45,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
     role: 'ADMIN',
     designation: 'Secret System Administrator',
     organization: 'ANVI',
+    department: { id: 'anvi-dept', name: 'ANVI Operations', code: 'ANVI' },
   } : null);
 
   const isAnviRoute = location.pathname.startsWith('/8328246413');
@@ -91,63 +92,73 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       ];
     }
 
-    switch (currentUser.role) {
-      case 'MARKETING_HEAD':
-        return [
-          { label: 'Overview', path: '/marketing', icon: BarChart3 },
-          { label: 'Lead Caller', path: '/leads', icon: PhoneCall },
-          { label: 'Employee Tasks', path: '/tasks', icon: CheckSquare },
-          { label: 'Co-Interns', path: '/co-interns', icon: GraduationCap },
-          { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
-          { label: 'Resources', path: '/resources', icon: FolderLock },
-        ];
-      case 'ADMIN':
-        return [
-          { label: 'Overview', path: '/admin', icon: LayoutDashboard },
-          { label: 'Employees', path: '/employees', icon: Users },
-          { label: 'Co-Interns', path: '/co-interns', icon: GraduationCap },
-          { label: 'Notifications', path: '/notifications-manager', icon: Bell },
-          { label: 'Marketing Team', path: '/marketing-team', icon: UserCog },
-          { label: 'Lead Importer', path: '/leads/import', icon: PhoneCall },
-          { label: 'Tasks', path: '/tasks', icon: CheckSquare },
-          { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
-          { label: 'Resources', path: '/resources', icon: FolderLock },
-          { label: 'Audit Logs', path: '/audit-logs', icon: ShieldCheck },
-        ];
-      case 'FOUNDER':
-        return [
-          { label: 'Executive Dashboard', path: '/founder', icon: Building2 },
-          { label: 'Employees', path: '/employees', icon: Users },
-          { label: 'Co-Interns', path: '/co-interns', icon: GraduationCap },
-          { label: 'Marketing Stats', path: '/marketing', icon: BarChart3 },
-          { label: 'Tasks Overview', path: '/tasks', icon: CheckSquare },
-          { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
-          { label: 'Resources', path: '/resources', icon: FolderLock },
-        ];
-      case 'EMPLOYEE':
-      default:
-        return [
-          { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-          { label: 'My Tasks', path: '/tasks', icon: CheckSquare },
-          { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
-          { label: 'Company Resources', path: '/resources', icon: FolderLock },
-        ];
+    if (currentUser.role === 'ADMIN') {
+      return [
+        { label: 'Overview', path: '/admin', icon: LayoutDashboard },
+        { label: 'Employees', path: '/employees', icon: Users },
+        { label: 'Co-Interns', path: '/co-interns', icon: GraduationCap },
+        { label: 'Notifications', path: '/notifications-manager', icon: Bell },
+        { label: 'Marketing Team', path: '/marketing-team', icon: UserCog },
+        { label: 'Lead Importer', path: '/leads/import', icon: PhoneCall },
+        { label: 'Tasks', path: '/tasks', icon: CheckSquare },
+        { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
+        { label: 'Resources', path: '/resources', icon: FolderLock },
+        { label: 'Audit Logs', path: '/audit-logs', icon: ShieldCheck },
+      ];
     }
+
+    if (currentUser.role === 'FOUNDER') {
+      return [
+        { label: 'Executive Dashboard', path: '/founder', icon: Building2 },
+        { label: 'Employees', path: '/employees', icon: Users },
+        { label: 'Co-Interns', path: '/co-interns', icon: GraduationCap },
+        { label: 'Marketing Stats', path: '/marketing', icon: BarChart3 },
+        { label: 'Tasks Overview', path: '/tasks', icon: CheckSquare },
+        { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
+        { label: 'Resources', path: '/resources', icon: FolderLock },
+      ];
+    }
+
+    // Individual Marketing Professional / Executive
+    if (isMarketingIndividual(currentUser)) {
+      return [
+        { label: 'Lead Caller', path: '/leads', icon: PhoneCall },
+        { label: 'My Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { label: 'My Tasks', path: '/tasks', icon: CheckSquare },
+        { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
+        { label: 'Company Resources', path: '/resources', icon: FolderLock },
+      ];
+    }
+
+    // Head of Marketing
+    if (isMarketingHead(currentUser)) {
+      return [
+        { label: 'Overview', path: '/marketing', icon: BarChart3 },
+        { label: 'Lead Caller', path: '/leads', icon: PhoneCall },
+        { label: 'Employee Tasks', path: '/tasks', icon: CheckSquare },
+        { label: 'Co-Interns', path: '/co-interns', icon: GraduationCap },
+        { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
+        { label: 'Resources', path: '/resources', icon: FolderLock },
+      ];
+    }
+
+    // Default Employee
+    return [
+      { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'My Tasks', path: '/tasks', icon: CheckSquare },
+      { label: 'Study Resources', path: '/study-resources', icon: BookOpen },
+      { label: 'Company Resources', path: '/resources', icon: FolderLock },
+    ];
   };
 
   const navItems = getNavItems();
 
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'ADMIN':
-        return 'danger';
-      case 'MARKETING_HEAD':
-        return isAnvi ? 'danger' : 'warning';
-      case 'FOUNDER':
-        return 'primary';
-      default:
-        return 'info';
-    }
+  const getRoleBadgeVariant = (user: any): 'danger' | 'warning' | 'primary' | 'info' => {
+    if (isAnvi) return 'danger';
+    if (user?.role === 'ADMIN') return 'danger';
+    if (user?.role === 'FOUNDER') return 'primary';
+    if (isMarketingHead(user)) return 'warning';
+    return 'info';
   };
 
   const companyName = isAnvi ? 'Anvi' : 'BluNet';
@@ -220,12 +231,16 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         <div className={`p-4 mx-3 my-3 rounded-xl border ${isAnvi ? 'bg-rose-50/60 border-rose-200/80' : 'bg-slate-50 border-slate-100'}`}>
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-mono font-medium text-slate-500">{currentUser.employeeId}</span>
-            <Badge variant={getRoleBadgeVariant(currentUser.role)}>
-              {isAnvi ? 'Anvi Admin' : currentUser.role.replace('_', ' ')}
+            <Badge variant={getRoleBadgeVariant(currentUser)}>
+              {isAnvi
+                ? 'Anvi Admin'
+                : (currentUser.designation || (isMarketingHead(currentUser) ? 'Marketing Head' : currentUser.role.replace('_', ' ')))}
             </Badge>
           </div>
           <div className="font-medium text-sm text-slate-900 truncate">{currentUser.name}</div>
-          <div className="text-xs text-slate-500 truncate">{currentUser.designation}</div>
+          <div className="text-xs text-slate-500 truncate">
+            {currentUser.designation || (typeof (currentUser as any).department === 'string' ? (currentUser as any).department : (currentUser as any).department?.name) || 'BluNet Workplace'}
+          </div>
         </div>
 
         {/* Navigation Items */}

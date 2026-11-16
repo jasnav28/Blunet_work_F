@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, CheckSquare, FolderLock, AlertCircle, PlayCircle, CheckCircle2, User, Eye, Calendar, UserCheck } from 'lucide-react';
+import { Clock, CheckSquare, FolderLock, AlertCircle, PlayCircle, CheckCircle2, User, Eye, Calendar, UserCheck, PhoneCall } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Card } from '../components/common/Card';
@@ -8,6 +8,7 @@ import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
 import { Task } from '../types';
+import { isMarketingIndividual } from '../lib/userSlug';
 
 export const EmployeeDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -80,7 +81,7 @@ export const EmployeeDashboard: React.FC = () => {
           <span className="text-blue-200 text-xs font-semibold uppercase tracking-wider">Employee Workspace</span>
           <h1 className="text-2xl font-bold mt-1">Good Day, {user?.name}</h1>
           <p className="text-blue-100 text-sm mt-0.5">
-            {user?.designation} • {user?.department?.name || 'BluNet Team'}
+            {user?.designation} • {(typeof user?.department === 'string' ? user.department : user?.department?.name) || 'Marketing & Sales'}
           </p>
         </div>
         <div className="flex items-center gap-3 bg-white/10 backdrop-blur-xs px-4 py-2.5 rounded-xl text-xs font-medium border border-white/20">
@@ -221,6 +222,18 @@ export const EmployeeDashboard: React.FC = () => {
 
         {/* Sidebar Info Panel */}
         <div className="space-y-6">
+          {isMarketingIndividual(user) && (
+            <Card title="Marketing Lead Caller" className="border-blue-200 bg-blue-50/40">
+              <p className="text-xs text-slate-600 mb-3">Call queued leads, submit outcome notes, and manage customer callbacks.</p>
+              <Link to="/leads">
+                <Button variant="primary" className="w-full">
+                  <PhoneCall className="w-4 h-4 mr-2" />
+                  Open Lead Caller
+                </Button>
+              </Link>
+            </Card>
+          )}
+
           <Card title="Quick Resources">
             <p className="text-xs text-slate-500 mb-4">Access company policies, templates, and documentation.</p>
             <Link to="/resources">
@@ -242,8 +255,14 @@ export const EmployeeDashboard: React.FC = () => {
                 <span className="font-medium text-slate-900">{user?.email}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Designation</span>
+                <span className="font-medium text-slate-900">{user?.designation || 'Marketing Executive'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Department</span>
-                <span className="font-medium text-slate-900">{user?.department?.name || 'General'}</span>
+                <span className="font-medium text-slate-900">
+                  {(typeof user?.department === 'string' ? user.department : user?.department?.name) || 'Marketing & Sales'}
+                </span>
               </div>
               <div className="flex justify-between py-1.5">
                 <span className="text-slate-500">Joining Date</span>

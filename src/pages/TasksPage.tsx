@@ -21,6 +21,7 @@ import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
 import { Task, UserProfile } from '../types';
+import { isMarketingHead } from '../lib/userSlug';
 
 export const TasksPage: React.FC = () => {
   const { user } = useAuth();
@@ -67,7 +68,7 @@ export const TasksPage: React.FC = () => {
   };
 
   const fetchEmployees = async () => {
-    if (user?.role === 'ADMIN' || user?.role === 'MARKETING_HEAD' || user?.role === 'FOUNDER') {
+    if (user?.role === 'ADMIN' || user?.role === 'FOUNDER' || (user?.role === 'MARKETING_HEAD' && isMarketingHead(user))) {
       try {
         const res = await api.get('/employees');
         if (res.data.success) setEmployees(res.data.data);
@@ -210,7 +211,7 @@ export const TasksPage: React.FC = () => {
     return t.status === filter;
   });
 
-  const canAssignTask = user?.role === 'ADMIN' || user?.role === 'MARKETING_HEAD' || user?.role === 'FOUNDER';
+  const canAssignTask = user?.role === 'ADMIN' || user?.role === 'FOUNDER' || (user?.role === 'MARKETING_HEAD' && isMarketingHead(user));
   const submittedTasksCount = tasks.filter((t) => t.status === 'SUBMITTED').length;
   const myActiveTasks = tasks.filter((t) => t.status === 'TODO' || t.status === 'IN_PROGRESS');
 

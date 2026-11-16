@@ -22,6 +22,7 @@ import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
 import { UserProfile } from '../types';
+import { isMarketingHead } from '../lib/userSlug';
 
 interface ExtendedUserProfile extends UserProfile {
   taskStats?: {
@@ -286,8 +287,8 @@ export const EmployeesPage: React.FC = () => {
                     <div className="text-[11px] text-slate-500">{emp.email} • {emp.designation}</div>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={emp.role === 'ADMIN' ? 'danger' : emp.role === 'MARKETING_HEAD' ? 'warning' : 'info'}>
-                      {emp.role.replace('_', ' ')}
+                    <Badge variant={emp.role === 'ADMIN' ? 'danger' : isMarketingHead(emp) ? 'warning' : 'info'}>
+                      {emp.designation || (isMarketingHead(emp) ? 'Marketing Head' : emp.role.replace('_', ' '))}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{emp.department?.name || 'General'}</td>

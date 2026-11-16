@@ -3,7 +3,7 @@ import { ArrowRight, Eye, EyeOff, AlertCircle, ShieldCheck, UserCheck } from "lu
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { getUserSlug } from "../../lib/userSlug";
+import { getUserSlug, isMarketingHead, isMarketingIndividual } from "../../lib/userSlug";
 import ShapeWaves from "./ShapeWaves";
 import { LogoCloud } from "./logo-cloud-2";
 
@@ -218,10 +218,17 @@ function AuthForm() {
         login(res.data.data.token, res.data.data.user);
         const loggedUser = res.data.data.user;
         const userSlug = getUserSlug(loggedUser);
-        if (loggedUser.role === "ADMIN") navigate(`/${userSlug}/admin`);
-        else if (loggedUser.role === "MARKETING_HEAD") navigate(`/${userSlug}/marketing`);
-        else if (loggedUser.role === "FOUNDER") navigate(`/${userSlug}/founder`);
-        else navigate(`/${userSlug}/dashboard`);
+        if (loggedUser.role === "ADMIN") {
+          navigate(`/${userSlug}/admin`);
+        } else if (loggedUser.role === "FOUNDER") {
+          navigate(`/${userSlug}/founder`);
+        } else if (isMarketingHead(loggedUser)) {
+          navigate(`/${userSlug}/marketing`);
+        } else if (isMarketingIndividual(loggedUser)) {
+          navigate(`/${userSlug}/leads`);
+        } else {
+          navigate(`/${userSlug}/dashboard`);
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || "Invalid Employee ID or password.");
