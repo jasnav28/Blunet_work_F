@@ -224,23 +224,6 @@ function AuthForm() {
         else navigate(`/${userSlug}/dashboard`);
       }
     } catch (err: any) {
-      if ((employeeId.trim().toLowerCase() === 'beast@123' || employeeId.trim() === 'Beast@123') && password === 'Beast@123') {
-        const beastFallbackUser = {
-          id: 'beast-marketing-profile',
-          employeeId: 'Beast@123',
-          name: 'Beast Marketing',
-          email: 'beast@blunet.com',
-          role: 'MARKETING_HEAD' as const,
-          designation: 'Marketing Head',
-          department: { id: 'mkt-dept-id', name: 'Marketing & Sales', code: 'MKT' },
-          joiningDate: new Date().toISOString(),
-          isActive: true,
-        };
-        login('beast-marketing-offline-token', beastFallbackUser);
-        const userSlug = getUserSlug(beastFallbackUser);
-        navigate(`/${userSlug}/marketing`);
-        return;
-      }
       setError(err.response?.data?.error?.message || "Invalid Employee ID or password.");
     } finally {
       setLoading(false);
